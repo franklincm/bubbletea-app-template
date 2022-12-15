@@ -3,12 +3,11 @@ package main
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/stopwatch"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	commandprompt "github.com/franklincm/bubbles/commandPrompt"
 )
 
 var borderKeys = key.NewBinding(
@@ -39,14 +38,16 @@ var quitKeys = key.NewBinding(
 type errMsg error
 
 type Model struct {
-	quitting  bool
-	err       error
-	textStyle lipgloss.Style
-	width     int
-	height    int
-	ready     bool
-	stopwatch stopwatch.Model
-	border    bool
+	border     bool
+	err        error
+	height     int
+	input      []string
+	prompt     tea.Model
+	quitting   bool
+	ready      bool
+	showprompt bool
+	textStyle  lipgloss.Style
+	width      int
 }
 
 func NewModel() Model {
@@ -55,20 +56,29 @@ func NewModel() Model {
 		Background(lipgloss.Color("240")).
 		Align(lipgloss.Center)
 
-	stopwatch := stopwatch.NewWithInterval(time.Millisecond)
+	prompt := commandprompt.New()
 
 	return Model{
 		textStyle: style,
-		stopwatch: stopwatch,
 		border:    false,
+		prompt:    prompt,
 	}
 }
 
 func (m Model) Init() tea.Cmd {
-	return tea.Batch(m.stopwatch.Init(), tea.EnterAltScreen)
+	m.input = make([]string, 3)
+	return tea.Batch(
+		tea.EnterAltScreen,
+		m.prompt.Init(),
+	)
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var (
+		cmd  tea.Cmd
+		cmds []tea.Cmd
+	)
+
 	switch msg := msg.(type) {
 
 	case tea.WindowSizeMsg:
@@ -77,24 +87,40 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 		return m, nil
+
+	case commandprompt.PromptInput:
+		if msg == "quit" || msg == "q" {
+			m.quitting = true
+			return m, tea.Quit
+		}
+
+		m.input = append(m.input, string(msg))
+		return m, nil
+
+	case commandprompt.PromptEditing:
+		m.showprompt = bool(msg)
+		return m, nil
+
 	case tea.KeyMsg:
-		if key.Matches(msg, quitKeys) {
+		if key.Matches(msg, quitKeys) && !m.showprompt {
 			m.quitting = true
 			return m, tea.Quit
 
-		} else if key.Matches(msg, borderKeys) {
+		} else if key.Matches(msg, borderKeys) && !m.showprompt {
 			m.border = !m.border
 		}
-		return m, nil
+
+		// return m, nil
+
 	case errMsg:
 		m.err = msg
 		return m, nil
-
-	default:
-		var cmd tea.Cmd
-		m.stopwatch, cmd = m.stopwatch.Update(msg)
-		return m, cmd
 	}
+
+	m.prompt, cmd = m.prompt.Update(msg)
+	cmds = append(cmds, cmd)
+
+	return m, tea.Batch(cmds...)
 }
 
 func (m Model) View() string {
@@ -105,7 +131,7 @@ func (m Model) View() string {
 	str := fmt.Sprintf(
 		"%-*s %*s %*s",
 		20,
-		"c9s",
+		"test",
 		(m.width-20-12)/2,
 		fmt.Sprintf("width:%d", (m.width-20-15)/2),
 		(m.width-20-12)/2,
@@ -117,17 +143,40 @@ func (m Model) View() string {
 	}
 
 	testStr := `
-	oh
-	hai
-	wut
-	up
+some
+text
+here
+i
+guess
 	`
 	return fullscreenStyle.Height(m.height).Render(
 		lipgloss.JoinVertical(
 			lipgloss.Top,
-			headerStyle.Width(m.width).Render(str),
-			testStyle.Height(m.height-5).Width(m.width).Margin(0).Padding(0).BorderStyle(lipgloss.NormalBorder()).BorderTop(false).BorderBottom(true).Render(testStr),
-			testStyle.Width(m.width).Margin(0).Padding(0).BorderStyle(lipgloss.NormalBorder()).BorderTop(false).BorderBottom(false).Render(fmt.Sprintf("%s:%d", "footer, height", m.height)),
+			headerStyle.
+				Width(m.width).
+				Render(str),
+
+			testStyle.
+				AlignHorizontal(lipgloss.Center).
+				Height(m.height-6).
+				Width(m.width).
+				Margin(0).
+				Padding(0).
+				BorderStyle(lipgloss.NormalBorder()).
+				BorderTop(false).
+				BorderBottom(true).
+				Render(testStr),
+
+			testStyle.
+				Width(m.width).
+				Margin(0).
+				Padding(0).
+				BorderStyle(lipgloss.NormalBorder()).
+				BorderTop(false).
+				BorderBottom(false).
+				Render(fmt.Sprintf("%s:%d", "footer, height", m.height)),
+
+			testStyle.Render(m.prompt.View()+"\n"),
 		),
 	)
 }
