@@ -14,7 +14,7 @@ vet: fmt
 .PHONY:vet
 
 build: vet
-	go build -o dist/template main.go
+	go build -o dist/template main.go styles.go keys.go
 .PHONY:build
 
 test:
