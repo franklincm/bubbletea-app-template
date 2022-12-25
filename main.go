@@ -7,7 +7,7 @@ import (
 	key "github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	lipgloss "github.com/charmbracelet/lipgloss"
-	"github.com/franklincm/bubbletea-template/components"
+	components "github.com/franklincm/bubbletea-template/components"
 	frame "github.com/franklincm/bubbletea-template/components/frame"
 	spinner "github.com/franklincm/bubbletea-template/components/spinner"
 	text "github.com/franklincm/bubbletea-template/components/text"
@@ -23,24 +23,25 @@ const (
 	footer
 )
 
-var modelHeights = map[frameId]int{
+var frameHeights = map[frameId]int{
 	header: 2,
 	footer: 2,
 }
 
 type Model struct {
-	err        error
-	quitting   bool
-	styles     map[frameId]lipgloss.Style
-	frames     map[frameId]tea.Model
-	textModel  components.Component
-	spinner    components.Component
+	err       error
+	quitting  bool
+	spinner   components.Component
+	textModel components.Component
+
 	components map[string]components.Component
+	frames     map[frameId]tea.Model
+	styles     map[frameId]lipgloss.Style
 }
 
 func New() Model {
 	s := spinner.New()
-	s.Spinner = spinner.Points
+	s.Spinner = spinner.Dot
 
 	m := Model{
 		textModel: text.New().Content("text widget"),
@@ -93,21 +94,21 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// update header
 		m.frames[header], cmd = m.frames[header].Update(tea.WindowSizeMsg{
 			Width:  msg.Width,
-			Height: modelHeights[header],
+			Height: frameHeights[header],
 		})
 		cmds = append(cmds, cmd)
 
 		// update body
 		m.frames[footer], cmd = m.frames[footer].Update(tea.WindowSizeMsg{
 			Width:  msg.Width,
-			Height: modelHeights[footer],
+			Height: frameHeights[footer],
 		})
 		cmds = append(cmds, cmd)
 
 		// update footer
 		m.frames[body], cmd = m.frames[body].Update(tea.WindowSizeMsg{
 			Width:  msg.Width,
-			Height: msg.Height - modelHeights[header] - modelHeights[footer] - 3,
+			Height: msg.Height - frameHeights[header] - frameHeights[footer] - len(frameHeights),
 		})
 		cmds = append(cmds, cmd)
 
