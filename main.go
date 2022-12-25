@@ -7,59 +7,76 @@ import (
 	key "github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	lipgloss "github.com/charmbracelet/lipgloss"
+	"github.com/franklincm/bubbletea-template/components"
 	frame "github.com/franklincm/bubbletea-template/components/frame"
+	spinner "github.com/franklincm/bubbletea-template/components/spinner"
+	text "github.com/franklincm/bubbletea-template/components/text"
 )
 
 type errMsg error
 
-type componentId int
+type frameId int
 
 const (
-	header componentId = iota
+	header frameId = iota
 	body
 	footer
 )
 
-var modelHeights = map[componentId]int{
+var modelHeights = map[frameId]int{
 	header: 2,
 	footer: 2,
 }
 
 type Model struct {
-	border   bool
-	err      error
-	quitting bool
-	styles   map[componentId]lipgloss.Style
-	frames   map[componentId]tea.Model
+	err        error
+	quitting   bool
+	styles     map[frameId]lipgloss.Style
+	frames     map[frameId]tea.Model
+	textModel  components.Component
+	spinner    components.Component
+	components map[string]components.Component
 }
 
 func New() Model {
-	styles := map[componentId]lipgloss.Style{
-		header: headerStyle,
-		body:   bodyStyle,
-		footer: footerStyle,
+	s := spinner.New()
+	s.Spinner = spinner.Points
+
+	m := Model{
+		textModel: text.New().Content("text widget"),
+		spinner:   s,
+
+		styles: map[frameId]lipgloss.Style{
+			header: headerStyle,
+			body:   bodyStyle,
+			footer: footerStyle,
+		},
+
+		components: map[string]components.Component{
+			"spinner":   s,
+			"textwidet": text.New().Content("text widget again"),
+		},
 	}
 
-	frames := map[componentId]tea.Model{
-		header: frame.New().Content("header"),
-		body:   frame.New().Content("body"),
-		footer: frame.New().Content("footer"),
+	frames := map[frameId]tea.Model{
+		header: frame.New().Content(m.textModel),
+		body:   frame.New().Content(m.spinner),
+		footer: frame.New().Content(m.textModel),
 	}
 
-	for component := range frames {
-		frames[component] = frames[component].(frame.Model).Style(styles[component])
+	for f := range frames {
+		frames[f] = frames[f].(frame.Model).Style(m.styles[f])
 	}
 
-	return Model{
-		border: false,
-		frames: frames,
-		styles: styles,
-	}
+	m.frames = frames
+
+	return m
 }
 
 func (m Model) Init() tea.Cmd {
 	return tea.Batch(
 		tea.EnterAltScreen,
+		m.spinner.(spinner.Model).Tick,
 	)
 }
 
@@ -73,23 +90,28 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.WindowSizeMsg:
 
+		// update header
 		m.frames[header], cmd = m.frames[header].Update(tea.WindowSizeMsg{
 			Width:  msg.Width,
 			Height: modelHeights[header],
 		})
 		cmds = append(cmds, cmd)
 
+		// update body
 		m.frames[footer], cmd = m.frames[footer].Update(tea.WindowSizeMsg{
 			Width:  msg.Width,
 			Height: modelHeights[footer],
 		})
 		cmds = append(cmds, cmd)
 
+		// update footer
 		m.frames[body], cmd = m.frames[body].Update(tea.WindowSizeMsg{
 			Width:  msg.Width,
 			Height: msg.Height - modelHeights[header] - modelHeights[footer] - 3,
 		})
 		cmds = append(cmds, cmd)
+
+		// redraw
 		cmds = append(cmds, tea.ClearScreen)
 
 	case tea.KeyMsg:
@@ -101,6 +123,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case errMsg:
 		m.err = msg
 		return m, nil
+
+	default:
+		for f := range m.frames {
+			m.frames[f], cmd = m.frames[f].Update(msg)
+			cmds = append(cmds, cmd)
+		}
 	}
 
 	return m, tea.Batch(cmds...)

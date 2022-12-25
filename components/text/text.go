@@ -1,4 +1,4 @@
-package frame
+package text
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
@@ -14,12 +14,13 @@ type Model struct {
 	style   lipgloss.Style
 	width   int
 	height  int
-	content tea.Model
+	content string
 }
 
 func New() Model {
 	return Model{
-		style: style,
+		style:   style,
+		content: "",
 	}
 }
 
@@ -28,38 +29,24 @@ func (m Model) Init() tea.Cmd {
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var (
-		cmd  tea.Cmd
-		cmds []tea.Cmd
-	)
-
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
-
-	default:
-		m.content, cmd = m.content.Update(msg)
-		cmds = append(cmds, cmd)
 	}
-
-	return m, tea.Batch(cmds...)
+	return m, nil
 }
 
 func (m Model) View() string {
 	return m.style.
 		Width(m.width).
 		Height(m.height).
-		Render(m.content.View())
+		Render(m.content)
 }
 
-func (m Model) Content(content tea.Model) Model {
+func (m Model) Content(content string) Model {
 	m.content = content
 	return m
-}
-
-func (m Model) GetContent() tea.Model {
-	return m.content
 }
 
 func (m Model) Style(style lipgloss.Style) Model {
