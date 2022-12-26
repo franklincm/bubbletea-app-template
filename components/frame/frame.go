@@ -17,17 +17,17 @@ type Model struct {
 	content tea.Model
 }
 
-func New() Model {
-	return Model{
+func New() *Model {
+	return &Model{
 		style: style,
 	}
 }
 
-func (m *Model) Init() tea.Cmd {
+func (m Model) Init() tea.Cmd {
 	return nil
 }
 
-func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
+func (m Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -43,28 +43,28 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		cmds = append(cmds, cmd)
 	}
 
-	return m, tea.Batch(cmds...)
+	return &m, tea.Batch(cmds...)
 }
 
-func (m Model) View() string {
+func (m *Model) View() string {
 	return m.style.
 		Width(m.width).
 		Height(m.height).
 		Render(m.content.View())
 }
 
-func (m Model) Content(content tea.Model) Model {
+func (m Model) Content(content tea.Model) *Model {
 	m.content = content
-	return m
+	return &m
 }
 
 func (m Model) GetContent() tea.Model {
 	return m.content
 }
 
-func (m Model) Style(style lipgloss.Style) Model {
+func (m Model) Style(style lipgloss.Style) *Model {
 	m.style = style
-	return m
+	return &m
 }
 
 func (m Model) GetStyle() lipgloss.Style {

@@ -28,13 +28,15 @@ var frameHeights = map[frameId]int{
 }
 
 type Model struct {
+	width  int
+	height int
+
 	err       error
 	quitting  bool
 	spinner   tea.Model
 	textModel tea.Model
 
-	frames map[frameId]frame.Model
-	styles map[frameId]lipgloss.Style
+	frames map[frameId]*frame.Model
 }
 
 func New() Model {
@@ -44,22 +46,12 @@ func New() Model {
 	m := Model{
 		textModel: text.New().Content("text widget"),
 		spinner:   s,
-
-		styles: map[frameId]lipgloss.Style{
-			header: headerStyle,
-			body:   bodyStyle,
-			footer: footerStyle,
-		},
 	}
 
-	frames := map[frameId]frame.Model{
-		header: frame.New().Content(m.textModel),
-		body:   frame.New().Content(m.spinner),
-		footer: frame.New().Content(m.textModel),
-	}
-
-	for f := range frames {
-		frames[f] = frames[f].Style(m.styles[f])
+	frames := map[frameId]*frame.Model{
+		header: frame.New().Content(m.textModel).Style(headerStyle),
+		body:   frame.New().Content(m.spinner).Style(bodyStyle),
+		footer: frame.New().Content(m.textModel).Style(footerStyle),
 	}
 
 	m.frames = frames
@@ -83,6 +75,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.height = msg.Height
 
 		// update header
 		m.frames[header], cmd = m.frames[header].Update(tea.WindowSizeMsg{
@@ -112,6 +106,21 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if key.Matches(msg, quitKeys) {
 			m.quitting = true
 			return m, tea.Quit
+		} else if key.Matches(msg, cycleKey) {
+
+			m.frames = map[frameId]*frame.Model{
+				header: frame.New().Content(m.frames[body].GetContent()).Style(headerStyle),
+				body:   frame.New().Content(m.frames[footer].GetContent()).Style(bodyStyle),
+				footer: frame.New().Content(m.frames[header].GetContent()).Style(footerStyle),
+			}
+
+			_, cmd := m.Update(tea.WindowSizeMsg{
+				Width:  m.width,
+				Height: m.height,
+			})
+
+			cmds = append(cmds, cmd)
+
 		}
 
 	case errMsg:
