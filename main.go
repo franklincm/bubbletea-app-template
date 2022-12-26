@@ -31,10 +31,11 @@ type Model struct {
 	width  int
 	height int
 
-	err       error
-	quitting  bool
-	spinner   tea.Model
-	textModel tea.Model
+	err         error
+	quitting    bool
+	spinner     tea.Model
+	headerModel tea.Model
+	footerModel tea.Model
 
 	frames map[frameId]*frame.Model
 }
@@ -44,14 +45,15 @@ func New() Model {
 	s.Spinner = spinner.Dot
 
 	m := Model{
-		textModel: text.New().Content("text widget"),
-		spinner:   s,
+		headerModel: text.New().Content("header"),
+		footerModel: text.New().Content("footer"),
+		spinner:     s,
 	}
 
 	frames := map[frameId]*frame.Model{
-		header: frame.New().Content(m.textModel).Style(headerStyle),
+		header: frame.New().Content(m.headerModel).Style(headerStyle),
 		body:   frame.New().Content(m.spinner).Style(bodyStyle),
-		footer: frame.New().Content(m.textModel).Style(footerStyle),
+		footer: frame.New().Content(m.footerModel).Style(footerStyle),
 	}
 
 	m.frames = frames
