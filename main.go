@@ -7,7 +7,6 @@ import (
 	key "github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	lipgloss "github.com/charmbracelet/lipgloss"
-	components "github.com/franklincm/bubbletea-template/components"
 	frame "github.com/franklincm/bubbletea-template/components/frame"
 	spinner "github.com/franklincm/bubbletea-template/components/spinner"
 	text "github.com/franklincm/bubbletea-template/components/text"
@@ -31,12 +30,11 @@ var frameHeights = map[frameId]int{
 type Model struct {
 	err       error
 	quitting  bool
-	spinner   components.Component
-	textModel components.Component
+	spinner   tea.Model
+	textModel tea.Model
 
-	components map[string]components.Component
-	frames     map[frameId]tea.Model
-	styles     map[frameId]lipgloss.Style
+	frames map[frameId]frame.Model
+	styles map[frameId]lipgloss.Style
 }
 
 func New() Model {
@@ -52,21 +50,16 @@ func New() Model {
 			body:   bodyStyle,
 			footer: footerStyle,
 		},
-
-		components: map[string]components.Component{
-			"spinner":   s,
-			"textwidet": text.New().Content("text widget again"),
-		},
 	}
 
-	frames := map[frameId]tea.Model{
+	frames := map[frameId]frame.Model{
 		header: frame.New().Content(m.textModel),
 		body:   frame.New().Content(m.spinner),
 		footer: frame.New().Content(m.textModel),
 	}
 
 	for f := range frames {
-		frames[f] = frames[f].(frame.Model).Style(m.styles[f])
+		frames[f] = frames[f].Style(m.styles[f])
 	}
 
 	m.frames = frames
