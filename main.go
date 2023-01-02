@@ -105,14 +105,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		})
 		cmds = append(cmds, cmd)
 
-		// update body
+		// update footer
 		m.frames[footer], cmd = m.frames[footer].Update(tea.WindowSizeMsg{
 			Width:  msg.Width,
 			Height: frameHeights[footer],
 		})
 		cmds = append(cmds, cmd)
 
-		// update footer
+		// update body
 		m.frames[body], cmd = m.frames[body].Update(tea.WindowSizeMsg{
 			Width:  msg.Width,
 			Height: msg.Height - frameHeights[header] - frameHeights[footer] - len(frameHeights),

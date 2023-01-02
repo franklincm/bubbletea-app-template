@@ -1,7 +1,11 @@
 
 .DEFAULT_GOAL := build
 
-fmt:
+precommit:
+	pre-commit install
+.PHONY:precommit
+
+fmt: precommit
 	gofmt -w -s .
 .PHONY:fmt
 
