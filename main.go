@@ -153,6 +153,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if key.Matches(msg, quitKeys) && !m.showprompt {
 			m.quitting = true
 			return m, tea.Quit
+		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["left"]))) {
+			m.frames[body] = m.frames[body].Content(m.spinner)
+		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["right"]))) {
+			m.frames[body] = m.frames[body].Content(m.spinner2)
 		}
 
 	case errMsg:
@@ -167,6 +171,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	m.prompt, cmd = m.prompt.Update(msg)
+	cmds = append(cmds, cmd)
+	m.spinner, cmd = m.spinner.Update(msg)
 	cmds = append(cmds, cmd)
 	m.spinner2, cmd = m.spinner2.Update(msg)
 	cmds = append(cmds, cmd)

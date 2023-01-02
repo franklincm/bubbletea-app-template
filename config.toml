@@ -1,4 +1,9 @@
 [keys.global]
+left = "h"
+down = "j"
+up = "k"
+right = "l"
+
 describe = "d"
 edit = "e"
 refresh = "r"

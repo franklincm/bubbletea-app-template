@@ -19,7 +19,12 @@ type (
 
 var defaultConfig = Config{
 	Keys: map[string]Keymap{
-		"global": {},
+		"global": {
+			"left":  "h",
+			"down":  "j",
+			"up":    "k",
+			"right": "l",
+		},
 	},
 }
 
