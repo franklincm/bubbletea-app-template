@@ -51,9 +51,18 @@ func New() Model {
 	}
 
 	frames := map[frameId]*frame.Model{
-		header: frame.New().Content(m.headerModel).Style(headerStyle),
-		body:   frame.New().Content(m.spinner).Style(bodyStyle),
-		footer: frame.New().Content(m.footerModel).Style(footerStyle),
+		header: frame.
+			New().
+			Style(headerStyle).
+			Content(m.headerModel),
+		body: frame.
+			New().
+			Style(bodyStyle).
+			Content(m.spinner),
+		footer: frame.
+			New().
+			Style(footerStyle).
+			Content(m.footerModel),
 	}
 
 	m.frames = frames
@@ -110,11 +119,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		} else if key.Matches(msg, cycleKey) {
 
-			m.frames = map[frameId]*frame.Model{
-				header: frame.New().Content(m.frames[body].GetContent()).Style(headerStyle),
-				body:   frame.New().Content(m.frames[footer].GetContent()).Style(bodyStyle),
-				footer: frame.New().Content(m.frames[header].GetContent()).Style(footerStyle),
-			}
+			tmp := m.frames[header].GetContent()
+			m.frames[header] = m.frames[header].Content(m.frames[body].GetContent())
+			m.frames[body] = m.frames[body].Content(m.frames[footer].GetContent())
+			m.frames[footer] = m.frames[footer].Content(tmp)
 
 			_, cmd := m.Update(tea.WindowSizeMsg{
 				Width:  m.width,
