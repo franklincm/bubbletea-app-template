@@ -11,6 +11,7 @@ import (
 	frame "github.com/franklincm/bubbletea-template/components/frame"
 	spinner "github.com/franklincm/bubbletea-template/components/spinner"
 	text "github.com/franklincm/bubbletea-template/components/text"
+	config "github.com/franklincm/bubbletea-template/config"
 )
 
 type errMsg error
@@ -22,6 +23,8 @@ const (
 	body
 	footer
 )
+
+var conf = config.New()
 
 var frameHeights = map[frameId]int{
 	header: 2,
@@ -35,6 +38,7 @@ type Model struct {
 	err         error
 	quitting    bool
 	spinner     tea.Model
+	spinner2    tea.Model
 	headerModel tea.Model
 	footerModel tea.Model
 	prompt      tea.Model
@@ -48,13 +52,17 @@ func New() Model {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
 
-	p := commandprompt.New(": ")
+	s2 := spinner.New()
+	s2.Spinner = spinner.Points
+
+	p := commandprompt.New(":")
 	p.InputShow = key.NewBinding(key.WithKeys(":"))
 
 	m := Model{
 		headerModel: text.New().Content("header"),
 		footerModel: text.New().Content("footer"),
 		spinner:     s,
+		spinner2:    s2,
 		prompt:      p,
 	}
 
@@ -82,6 +90,7 @@ func (m Model) Init() tea.Cmd {
 	return tea.Batch(
 		tea.EnterAltScreen,
 		m.spinner.(spinner.Model).Tick,
+		m.spinner2.(spinner.Model).Tick,
 		m.prompt.Init(),
 	)
 }
@@ -132,6 +141,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.frames[header] = m.frames[header].Content(m.frames[body].GetContent())
 			m.frames[body] = m.frames[body].Content(tmp)
 
+		} else if msg == "s" {
+			m.frames[body] = m.frames[body].Content(m.spinner2)
 		}
 
 	case commandprompt.PromptEditing:
@@ -156,6 +167,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	m.prompt, cmd = m.prompt.Update(msg)
+	cmds = append(cmds, cmd)
+	m.spinner2, cmd = m.spinner2.Update(msg)
 	cmds = append(cmds, cmd)
 
 	if m.showprompt {
