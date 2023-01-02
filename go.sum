@@ -17,6 +17,8 @@ github.com/containerd/console v1.0.3 h1:lIr7SlA5PxZyMV30bDW0MGbiOPXwc63yRuCP0ARu
 github.com/containerd/console v1.0.3/go.mod h1:7LqA/THxQ86k76b8c/EMSiaJ3h1eZkMkXar0TQ1gf3U=
 github.com/franklincm/bubbles v0.0.0-20221227071438-15d341ac0b8d h1:pFbZZDLHpJh5Mj4jmaeP6zNDsmU8COTqV005gU0Gi4E=
 github.com/franklincm/bubbles v0.0.0-20221227071438-15d341ac0b8d/go.mod h1:JWZZSleCdxPs7yia0XJp0dwyK11YiVzK+H2aFR3KWuc=
+github.com/franklincm/bubbles v0.0.0-20230102072657-80f1f98c591c h1:30u8Je5pm6kIEli4lufuxW9zFnkPazeR0Rwah7FIOdI=
+github.com/franklincm/bubbles v0.0.0-20230102072657-80f1f98c591c/go.mod h1:JWZZSleCdxPs7yia0XJp0dwyK11YiVzK+H2aFR3KWuc=
 github.com/kylelemons/godebug v1.1.0/go.mod h1:9/0rRGxNHcop5bhtWyNeEfOS8JIWk580+fNqagV/RAw=
 github.com/lucasb-eyer/go-colorful v1.2.0 h1:1nnpGOrhyZZuNyfu1QjKiUICQ74+3FNCN69Aj6K7nkY=
 github.com/lucasb-eyer/go-colorful v1.2.0/go.mod h1:R4dSotOR9KMtayYi1e77YzuveK+i7ruzyGqttikkLy0=

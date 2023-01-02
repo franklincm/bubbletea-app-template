@@ -12,7 +12,7 @@ require (
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymanbagabas/go-osc52 v1.2.1 // indirect
 	github.com/containerd/console v1.0.3 // indirect
-	github.com/franklincm/bubbles v0.0.0-20221227071438-15d341ac0b8d // indirect
+	github.com/franklincm/bubbles v0.0.0-20230102072657-80f1f98c591c // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect

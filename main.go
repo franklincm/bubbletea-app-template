@@ -48,7 +48,7 @@ func New() Model {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
 
-	p := commandprompt.New()
+	p := commandprompt.New(": ")
 	p.InputShow = key.NewBinding(key.WithKeys(":"))
 
 	m := Model{
