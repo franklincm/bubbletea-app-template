@@ -7,6 +7,7 @@ import (
 	key "github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	lipgloss "github.com/charmbracelet/lipgloss"
+	commandprompt "github.com/franklincm/bubbles/commandPrompt"
 	frame "github.com/franklincm/bubbletea-template/components/frame"
 	spinner "github.com/franklincm/bubbletea-template/components/spinner"
 	text "github.com/franklincm/bubbletea-template/components/text"
@@ -36,6 +37,9 @@ type Model struct {
 	spinner     tea.Model
 	headerModel tea.Model
 	footerModel tea.Model
+	prompt      tea.Model
+	input       string
+	showprompt  bool
 
 	frames map[frameId]*frame.Model
 }
@@ -44,10 +48,14 @@ func New() Model {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
 
+	p := commandprompt.New()
+	p.InputShow = key.NewBinding(key.WithKeys(":"))
+
 	m := Model{
 		headerModel: text.New().Content("header"),
 		footerModel: text.New().Content("footer"),
 		spinner:     s,
+		prompt:      p,
 	}
 
 	frames := map[frameId]*frame.Model{
@@ -74,6 +82,7 @@ func (m Model) Init() tea.Cmd {
 	return tea.Batch(
 		tea.EnterAltScreen,
 		m.spinner.(spinner.Model).Tick,
+		m.prompt.Init(),
 	)
 }
 
@@ -113,24 +122,26 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// redraw
 		cmds = append(cmds, tea.ClearScreen)
 
-	case tea.KeyMsg:
-		if key.Matches(msg, quitKeys) {
+	case commandprompt.PromptInput:
+		if msg == "quit" || msg == "q" {
 			m.quitting = true
 			return m, tea.Quit
-		} else if key.Matches(msg, cycleKey) {
 
+		} else if msg == "c" {
 			tmp := m.frames[header].GetContent()
 			m.frames[header] = m.frames[header].Content(m.frames[body].GetContent())
-			m.frames[body] = m.frames[body].Content(m.frames[footer].GetContent())
-			m.frames[footer] = m.frames[footer].Content(tmp)
+			m.frames[body] = m.frames[body].Content(tmp)
 
-			_, cmd := m.Update(tea.WindowSizeMsg{
-				Width:  m.width,
-				Height: m.height,
-			})
+		}
 
-			cmds = append(cmds, cmd)
+	case commandprompt.PromptEditing:
+		m.showprompt = bool(msg)
+		return m, nil
 
+	case tea.KeyMsg:
+		if key.Matches(msg, quitKeys) && !m.showprompt {
+			m.quitting = true
+			return m, tea.Quit
 		}
 
 	case errMsg:
@@ -142,6 +153,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.frames[f], cmd = m.frames[f].Update(msg)
 			cmds = append(cmds, cmd)
 		}
+	}
+
+	m.prompt, cmd = m.prompt.Update(msg)
+	cmds = append(cmds, cmd)
+
+	if m.showprompt {
+		m.frames[footer] = m.frames[footer].Content(m.prompt)
+	} else {
+		m.frames[footer] = m.frames[footer].Content(m.footerModel)
 	}
 
 	return m, tea.Batch(cmds...)
