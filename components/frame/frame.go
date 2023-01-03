@@ -37,6 +37,8 @@ func (m Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+		m.content, cmd = m.content.Update(msg)
+		cmds = append(cmds, cmd)
 
 	default:
 		m.content, cmd = m.content.Update(msg)
