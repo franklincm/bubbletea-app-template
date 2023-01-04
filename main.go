@@ -10,7 +10,7 @@ import (
 	commandprompt "github.com/franklincm/bubbles/commandPrompt"
 	frame "github.com/franklincm/bubbletea-template/components/frame"
 	spinner "github.com/franklincm/bubbletea-template/components/spinner"
-	"github.com/franklincm/bubbletea-template/components/table"
+	table "github.com/franklincm/bubbletea-template/components/table"
 	text "github.com/franklincm/bubbletea-template/components/text"
 	config "github.com/franklincm/bubbletea-template/config"
 )
@@ -244,7 +244,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// update body
 		m.frames[body], cmd = m.frames[body].Update(tea.WindowSizeMsg{
-			Width:  msg.Width,
+			Width:  msg.Width - 2,
 			Height: msg.Height - frameHeights[header] - frameHeights[footer] - len(frameHeights),
 		})
 		cmds = append(cmds, cmd)

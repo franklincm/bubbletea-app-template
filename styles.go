@@ -12,7 +12,10 @@ var bodyStyle = lipgloss.NewStyle().
 	Padding(0).
 	BorderBottom(true).
 	BorderTop(true).
+	BorderRight(true).
+	BorderLeft(true).
 	BorderStyle(lipgloss.NormalBorder()).
+	BorderForeground(lipgloss.Color("39")).
 	Align(lipgloss.Center).
 	AlignVertical(lipgloss.Center)
 
