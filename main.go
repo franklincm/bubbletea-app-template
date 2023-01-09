@@ -227,22 +227,22 @@ func New() Model {
 		tabs:        tabs,
 		cursor:      cursor,
 		models: map[string]tea.Model{
-			"spinner1": s1,
-			"spinner2": s2,
-			"spinner3": s3,
-			"table":    t,
+			"one":   t,
+			"two":   s1,
+			"three": s2,
+			"four":  s3,
 		},
 		viewOrder: map[int]string{
-			0: "table",
-			1: "spinner1",
-			2: "spinner2",
-			3: "spinner3",
+			0: "one",
+			1: "two",
+			2: "three",
+			3: "four",
 		},
 		viewPos: map[string]int{
-			"table":    0,
-			"spinner1": 1,
-			"spinner2": 2,
-			"spinner3": 3,
+			"one":   0,
+			"two":   1,
+			"three": 2,
+			"four":  3,
 		},
 	}
 
@@ -260,7 +260,7 @@ func New() Model {
 			New().
 			Style(bodyStyle).
 			Content(
-				[]tea.Model{m.models["spinner2"]},
+				[]tea.Model{m.models["three"]},
 			),
 		footer: vframe.
 			New().
@@ -278,9 +278,9 @@ func New() Model {
 func (m Model) Init() tea.Cmd {
 	return tea.Batch(
 		tea.EnterAltScreen,
-		m.models["spinner1"].(spinner.Model).Tick,
-		m.models["spinner2"].(spinner.Model).Tick,
-		m.models["spinner3"].(spinner.Model).Tick,
+		m.models["two"].(spinner.Model).Tick,
+		m.models["three"].(spinner.Model).Tick,
+		m.models["four"].(spinner.Model).Tick,
 		m.prompt.Init(),
 	)
 }
