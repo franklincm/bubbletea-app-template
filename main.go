@@ -147,26 +147,23 @@ var (
 )
 
 type Model struct {
+	err      error
+	quitting bool
+
 	width  int
 	height int
 
-	err         error
-	quitting    bool
-	spinner1    tea.Model
-	spinner2    tea.Model
-	spinner3    tea.Model
+	cursor     int
+	input      string
+	showprompt bool
+
 	headerModel tea.Model
 	testModel   tea.Model
 	footerModel tea.Model
 	prompt      tea.Model
-	input       string
-	showprompt  bool
-	mytable     tea.Model
 	tabs        tea.Model
-	cursor      int
 
-	frames map[frameId]*vframe.Model
-
+	frames    map[frameId]*vframe.Model
 	models    map[string]tea.Model
 	viewOrder map[int]string
 	viewPos   map[string]int
@@ -219,11 +216,7 @@ func New() Model {
 	m := Model{
 		headerModel: text.New().Content("header"),
 		footerModel: text.New().Content("footer"),
-		spinner1:    s1,
-		spinner2:    s2,
-		spinner3:    s3,
 		prompt:      p,
-		mytable:     t,
 		tabs:        tabs,
 		cursor:      cursor,
 		models: map[string]tea.Model{
