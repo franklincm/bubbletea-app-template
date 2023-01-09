@@ -169,6 +169,7 @@ type Model struct {
 
 	models    map[string]tea.Model
 	viewOrder map[int]string
+	viewPos   map[string]int
 }
 
 func New() Model {
@@ -236,6 +237,12 @@ func New() Model {
 			1: "spinner1",
 			2: "spinner2",
 			3: "spinner3",
+		},
+		viewPos: map[string]int{
+			"table":    0,
+			"spinner1": 1,
+			"spinner2": 2,
+			"spinner3": 3,
 		},
 	}
 
@@ -328,6 +335,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.frames[body] = m.frames[body].Content(
 				[]tea.Model{m.spinner2},
 			)
+		} else {
+			model, ok := m.models[string(msg)]
+			if ok {
+				m.setCursor(m.viewPos[string(msg)])
+				m.SetContent(model)
+				m.frames[body], cmd = m.frames[body].Update(tea.WindowSizeMsg{
+					Width:  bodyStyle.GetWidth(),
+					Height: bodyStyle.GetHeight(),
+				})
+			}
 		}
 
 	case commandprompt.PromptEditing:
@@ -428,6 +445,13 @@ func (m Model) SetContent(tm tea.Model) {
 	m.frames[body] = m.frames[body].Content(
 		[]tea.Model{tm},
 	)
+}
+
+func (m *Model) setCursor(index int) {
+	if index >= 0 && index <= len(m.tabs.(tabs.Model).GetHeadings()) {
+		m.cursor = index
+		m.tabs = m.tabs.(tabs.Model).SetFocused(m.cursor)
+	}
 }
 
 func (m *Model) cursorNext() {
