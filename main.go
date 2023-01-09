@@ -326,15 +326,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.quitting = true
 			return m, tea.Quit
 
-		} else if msg == "c" {
-			tmp := m.frames[header].GetContent()
-			m.frames[header] = m.frames[header].Content(m.frames[body].GetContent())
-			m.frames[body] = m.frames[body].Content(tmp)
-
-		} else if msg == "s" {
-			m.frames[body] = m.frames[body].Content(
-				[]tea.Model{m.spinner2},
-			)
 		} else {
 			model, ok := m.models[string(msg)]
 			if ok {
