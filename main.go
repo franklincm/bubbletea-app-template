@@ -152,8 +152,9 @@ type Model struct {
 
 	err         error
 	quitting    bool
-	spinner     tea.Model
+	spinner1    tea.Model
 	spinner2    tea.Model
+	spinner3    tea.Model
 	headerModel tea.Model
 	testModel   tea.Model
 	footerModel tea.Model
@@ -165,14 +166,20 @@ type Model struct {
 	cursor      int
 
 	frames map[frameId]*vframe.Model
+
+	models    map[string]tea.Model
+	viewOrder map[int]string
 }
 
 func New() Model {
-	s := spinner.New()
-	s.Spinner = spinner.Points
+	s1 := spinner.New()
+	s1.Spinner = spinner.Dot
 
 	s2 := spinner.New()
 	s2.Spinner = spinner.Points
+
+	s3 := spinner.New()
+	s3.Spinner = spinner.Meter
 
 	p := commandprompt.New(":")
 	p.InputShow = key.NewBinding(key.WithKeys(":"))
@@ -184,10 +191,10 @@ func New() Model {
 	)
 
 	headings := []string{
-		"projects",
-		"regions",
-		"builds",
-		"logs",
+		"one",
+		"two",
+		"three",
+		"four",
 	}
 	tabs := tabs.New(headings)
 	tabs = tabs.FocusedStyle(
@@ -211,12 +218,25 @@ func New() Model {
 	m := Model{
 		headerModel: text.New().Content("header"),
 		footerModel: text.New().Content("footer"),
-		spinner:     s,
+		spinner1:    s1,
 		spinner2:    s2,
+		spinner3:    s3,
 		prompt:      p,
 		mytable:     t,
 		tabs:        tabs,
 		cursor:      cursor,
+		models: map[string]tea.Model{
+			"spinner1": s1,
+			"spinner2": s2,
+			"spinner3": s3,
+			"table":    t,
+		},
+		viewOrder: map[int]string{
+			0: "table",
+			1: "spinner1",
+			2: "spinner2",
+			3: "spinner3",
+		},
 	}
 
 	frames := map[frameId]*vframe.Model{
@@ -233,7 +253,7 @@ func New() Model {
 			New().
 			Style(bodyStyle).
 			Content(
-				[]tea.Model{m.spinner},
+				[]tea.Model{m.models["spinner2"]},
 			),
 		footer: vframe.
 			New().
@@ -251,8 +271,9 @@ func New() Model {
 func (m Model) Init() tea.Cmd {
 	return tea.Batch(
 		tea.EnterAltScreen,
-		m.spinner.(spinner.Model).Tick,
-		m.spinner2.(spinner.Model).Tick,
+		m.models["spinner1"].(spinner.Model).Tick,
+		m.models["spinner2"].(spinner.Model).Tick,
+		m.models["spinner3"].(spinner.Model).Tick,
 		m.prompt.Init(),
 	)
 }
@@ -320,7 +341,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["left"]))) && !m.showprompt {
 			m.cursorPrev()
-			m.SetContent(m.mytable)
+			m.SetContent(m.models[m.viewOrder[m.cursor]])
 
 			m.frames[body], cmd = m.frames[body].Update(tea.WindowSizeMsg{
 				Width:  bodyStyle.GetWidth(),
@@ -331,7 +352,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["right"]))) && !m.showprompt {
 			m.cursorNext()
-			m.SetContent(m.spinner)
+			m.SetContent(m.models[m.viewOrder[m.cursor]])
 
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["down"]))) && !m.showprompt {
 			m.frames[body], cmd = m.frames[body].Update(msg)
@@ -359,12 +380,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	m.spinner, cmd = m.spinner.Update(msg)
-	cmds = append(cmds, cmd)
-	m.spinner2, cmd = m.spinner2.Update(msg)
-	cmds = append(cmds, cmd)
 	m.tabs, cmd = m.tabs.Update(msg)
 	cmds = append(cmds, cmd)
+
+	// update main models
+	for model := range m.models {
+		m.models[model], cmd = m.models[model].Update(msg)
+		cmds = append(cmds, cmd)
+	}
 
 	if m.showprompt {
 		m.frames[footer] = m.frames[footer].Content(
