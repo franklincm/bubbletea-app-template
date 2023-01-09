@@ -9,7 +9,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	lipgloss "github.com/charmbracelet/lipgloss"
 	commandprompt "github.com/franklincm/bubbles/commandPrompt"
-	"github.com/franklincm/bubbles/tabs"
+	tabs "github.com/franklincm/bubbles/tabs"
 	spinner "github.com/franklincm/bubbletea-template/components/spinner"
 	table "github.com/franklincm/bubbletea-template/components/table"
 	text "github.com/franklincm/bubbletea-template/components/text"
@@ -179,7 +179,7 @@ func New() Model {
 	s2.Spinner = spinner.Points
 
 	s3 := spinner.New()
-	s3.Spinner = spinner.Meter
+	s3.Spinner = spinner.Pulse
 
 	p := commandprompt.New(":")
 	p.InputShow = key.NewBinding(key.WithKeys(":"))
