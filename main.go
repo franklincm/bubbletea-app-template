@@ -331,10 +331,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if ok {
 				m.setCursor(m.viewPos[string(msg)])
 				m.SetContent(model)
-				m.frames[body], cmd = m.frames[body].Update(tea.WindowSizeMsg{
-					Width:  bodyStyle.GetWidth(),
-					Height: bodyStyle.GetHeight(),
-				})
 			}
 		}
 
@@ -350,11 +346,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["left"]))) && !m.showprompt {
 			m.cursorPrev()
 			m.SetContent(m.models[m.viewOrder[m.cursor]])
-
-			m.frames[body], cmd = m.frames[body].Update(tea.WindowSizeMsg{
-				Width:  bodyStyle.GetWidth(),
-				Height: bodyStyle.GetHeight(),
-			})
 
 			return m, cmd
 
@@ -436,6 +427,11 @@ func (m Model) SetContent(tm tea.Model) {
 	m.frames[body] = m.frames[body].Content(
 		[]tea.Model{tm},
 	)
+
+	m.frames[body], _ = m.frames[body].Update(tea.WindowSizeMsg{
+		Width:  bodyStyle.GetWidth(),
+		Height: bodyStyle.GetHeight(),
+	})
 }
 
 func (m *Model) setCursor(index int) {
