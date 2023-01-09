@@ -28,3 +28,15 @@ var fullscreenStyle = lipgloss.NewStyle().
 	Padding(0).
 	Margin(0).
 	Align(lipgloss.Center)
+
+var tabFocusedStyle = lipgloss.NewStyle().
+	MarginRight(1).
+	Background(lipgloss.Color("39")).
+	Foreground(lipgloss.Color("255")).
+	Align(lipgloss.Center)
+
+var tabBlurredStyle = lipgloss.NewStyle().
+	MarginRight(1).
+	Background(lipgloss.Color("7")).
+	Foreground(lipgloss.Color("0")).
+	Align(lipgloss.Center)

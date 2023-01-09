@@ -179,10 +179,10 @@ func New() Model {
 	s3 := spinner.New()
 	s3.Spinner = spinner.Pulse
 
-	p := commandprompt.New(":")
-	p.InputShow = key.NewBinding(key.WithKeys(":"))
+	prompt := commandprompt.New(":")
+	prompt.InputShow = key.NewBinding(key.WithKeys(":"))
 
-	t := table.New(
+	table := table.New(
 		table.WithColumns(columns),
 		table.WithRows(rows),
 		table.WithFocused(true),
@@ -194,33 +194,21 @@ func New() Model {
 		"three",
 		"four",
 	}
-	tabs := tabs.New(headings)
-	tabs = tabs.FocusedStyle(
-		lipgloss.NewStyle().
-			MarginRight(1).
-			Background(lipgloss.Color("39")).
-			Foreground(lipgloss.Color("255")).
-			Align(lipgloss.Center),
-	)
 
-	tabs = tabs.BlurredStyle(
-		lipgloss.NewStyle().
-			MarginRight(1).
-			Background(lipgloss.Color("7")).
-			Foreground(lipgloss.Color("0")).
-			Align(lipgloss.Center),
-	)
 	cursor := 2
+	tabs := tabs.New(headings)
+	tabs = tabs.FocusedStyle(tabFocusedStyle)
+	tabs = tabs.BlurredStyle(tabBlurredStyle)
 	tabs = tabs.SetFocused(cursor)
 
 	m := Model{
 		headerModel: text.New().Content("header"),
 		footerModel: text.New().Content("footer"),
-		prompt:      p,
+		prompt:      prompt,
 		tabs:        tabs,
 		cursor:      cursor,
 		models: map[string]tea.Model{
-			"one":   t,
+			"one":   table,
 			"two":   s1,
 			"three": s2,
 			"four":  s3,
