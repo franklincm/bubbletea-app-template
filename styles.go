@@ -5,7 +5,7 @@ import "github.com/charmbracelet/lipgloss"
 var headerStyle = lipgloss.NewStyle().
 	Margin(0).
 	Padding(0).
-	Align(lipgloss.Left)
+	Align(lipgloss.Right)
 
 var bodyStyle = lipgloss.NewStyle().
 	Margin(0).
