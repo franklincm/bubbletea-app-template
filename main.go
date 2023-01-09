@@ -319,41 +319,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["left"]))) && !m.showprompt {
-			m.cursor = int(math.Max(float64(m.cursor-1), 0))
-			m.tabs = m.tabs.(tabs.Model).SetFocused(m.cursor)
-
-			m.frames[header] = m.frames[header].Content(
-				[]tea.Model{
-					m.headerModel,
-					m.tabs,
-				},
-			)
-
-			m.frames[body] = m.frames[body].Content(
-				[]tea.Model{m.mytable},
-			)
+			m.cursorPrev()
+			m.SetContent(m.mytable)
 
 			m.frames[body], cmd = m.frames[body].Update(tea.WindowSizeMsg{
 				Width:  bodyStyle.GetWidth(),
 				Height: bodyStyle.GetHeight(),
 			})
+
 			return m, cmd
 
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["right"]))) && !m.showprompt {
-			numHeadings := len(m.tabs.(tabs.Model).GetHeadings())
-			m.cursor = int(math.Min(float64(m.cursor+1), float64(numHeadings-1)))
-			m.tabs = m.tabs.(tabs.Model).SetFocused(m.cursor)
-
-			m.frames[header] = m.frames[header].Content(
-				[]tea.Model{
-					m.headerModel,
-					m.tabs,
-				},
-			)
-
-			m.frames[body] = m.frames[body].Content(
-				[]tea.Model{m.spinner},
-			)
+			m.cursorNext()
+			m.SetContent(m.spinner)
 
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["down"]))) && !m.showprompt {
 			m.frames[body], cmd = m.frames[body].Update(msg)
@@ -414,6 +392,30 @@ func (m Model) View() string {
 			m.frames[footer].View(),
 		),
 	)
+}
+
+func (m Model) SetContent(tm tea.Model) {
+	m.frames[header] = m.frames[header].Content(
+		[]tea.Model{
+			m.headerModel,
+			m.tabs,
+		},
+	)
+
+	m.frames[body] = m.frames[body].Content(
+		[]tea.Model{tm},
+	)
+}
+
+func (m *Model) cursorNext() {
+	numHeadings := len(m.tabs.(tabs.Model).GetHeadings())
+	m.cursor = int(math.Min(float64(m.cursor+1), float64(numHeadings-1)))
+	m.tabs = m.tabs.(tabs.Model).SetFocused(m.cursor)
+}
+
+func (m *Model) cursorPrev() {
+	m.cursor = int(math.Max(float64(m.cursor-1), 0))
+	m.tabs = m.tabs.(tabs.Model).SetFocused(m.cursor)
 }
 
 func main() {
