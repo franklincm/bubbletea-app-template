@@ -2,16 +2,18 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"os"
 
 	key "github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	lipgloss "github.com/charmbracelet/lipgloss"
 	commandprompt "github.com/franklincm/bubbles/commandPrompt"
-	frame "github.com/franklincm/bubbletea-template/components/frame"
+	"github.com/franklincm/bubbles/tabs"
 	spinner "github.com/franklincm/bubbletea-template/components/spinner"
 	table "github.com/franklincm/bubbletea-template/components/table"
 	text "github.com/franklincm/bubbletea-template/components/text"
+	vframe "github.com/franklincm/bubbletea-template/components/vframe"
 	config "github.com/franklincm/bubbletea-template/config"
 )
 
@@ -153,18 +155,21 @@ type Model struct {
 	spinner     tea.Model
 	spinner2    tea.Model
 	headerModel tea.Model
+	testModel   tea.Model
 	footerModel tea.Model
 	prompt      tea.Model
 	input       string
 	showprompt  bool
 	mytable     tea.Model
+	tabs        tea.Model
+	cursor      int
 
-	frames map[frameId]*frame.Model
+	frames map[frameId]*vframe.Model
 }
 
 func New() Model {
 	s := spinner.New()
-	s.Spinner = spinner.Dot
+	s.Spinner = spinner.Points
 
 	s2 := spinner.New()
 	s2.Spinner = spinner.Points
@@ -178,6 +183,31 @@ func New() Model {
 		table.WithFocused(true),
 	)
 
+	headings := []string{
+		"projects",
+		"regions",
+		"builds",
+		"logs",
+	}
+	tabs := tabs.New(headings)
+	tabs = tabs.FocusedStyle(
+		lipgloss.NewStyle().
+			MarginRight(1).
+			Background(lipgloss.Color("39")).
+			Foreground(lipgloss.Color("255")).
+			Align(lipgloss.Center),
+	)
+
+	tabs = tabs.BlurredStyle(
+		lipgloss.NewStyle().
+			MarginRight(1).
+			Background(lipgloss.Color("7")).
+			Foreground(lipgloss.Color("0")).
+			Align(lipgloss.Center),
+	)
+	cursor := 2
+	tabs = tabs.SetFocused(cursor)
+
 	m := Model{
 		headerModel: text.New().Content("header"),
 		footerModel: text.New().Content("footer"),
@@ -185,21 +215,32 @@ func New() Model {
 		spinner2:    s2,
 		prompt:      p,
 		mytable:     t,
+		tabs:        tabs,
+		cursor:      cursor,
 	}
 
-	frames := map[frameId]*frame.Model{
-		header: frame.
+	frames := map[frameId]*vframe.Model{
+		header: vframe.
 			New().
 			Style(headerStyle).
-			Content(m.headerModel),
-		body: frame.
+			Content(
+				[]tea.Model{
+					m.headerModel,
+					m.tabs,
+				},
+			),
+		body: vframe.
 			New().
 			Style(bodyStyle).
-			Content(m.spinner),
-		footer: frame.
+			Content(
+				[]tea.Model{m.spinner},
+			),
+		footer: vframe.
 			New().
 			Style(footerStyle).
-			Content(m.footerModel),
+			Content(
+				[]tea.Model{m.footerModel},
+			),
 	}
 
 	m.frames = frames
@@ -263,7 +304,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.frames[body] = m.frames[body].Content(tmp)
 
 		} else if msg == "s" {
-			m.frames[body] = m.frames[body].Content(m.spinner2)
+			m.frames[body] = m.frames[body].Content(
+				[]tea.Model{m.spinner2},
+			)
 		}
 
 	case commandprompt.PromptEditing:
@@ -276,7 +319,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["left"]))) && !m.showprompt {
-			m.frames[body] = m.frames[body].Content(m.mytable)
+			m.cursor = int(math.Max(float64(m.cursor-1), 0))
+			m.tabs = m.tabs.(tabs.Model).SetFocused(m.cursor)
+
+			m.frames[header] = m.frames[header].Content(
+				[]tea.Model{
+					m.headerModel,
+					m.tabs,
+				},
+			)
+
+			m.frames[body] = m.frames[body].Content(
+				[]tea.Model{m.mytable},
+			)
+
 			m.frames[body], cmd = m.frames[body].Update(tea.WindowSizeMsg{
 				Width:  bodyStyle.GetWidth(),
 				Height: bodyStyle.GetHeight(),
@@ -284,7 +340,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, cmd
 
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["right"]))) && !m.showprompt {
-			m.frames[body] = m.frames[body].Content(m.spinner)
+			numHeadings := len(m.tabs.(tabs.Model).GetHeadings())
+			m.cursor = int(math.Min(float64(m.cursor+1), float64(numHeadings-1)))
+			m.tabs = m.tabs.(tabs.Model).SetFocused(m.cursor)
+
+			m.frames[header] = m.frames[header].Content(
+				[]tea.Model{
+					m.headerModel,
+					m.tabs,
+				},
+			)
+
+			m.frames[body] = m.frames[body].Content(
+				[]tea.Model{m.spinner},
+			)
 
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["down"]))) && !m.showprompt {
 			m.frames[body], cmd = m.frames[body].Update(msg)
@@ -316,11 +385,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	cmds = append(cmds, cmd)
 	m.spinner2, cmd = m.spinner2.Update(msg)
 	cmds = append(cmds, cmd)
+	m.tabs, cmd = m.tabs.Update(msg)
+	cmds = append(cmds, cmd)
 
 	if m.showprompt {
-		m.frames[footer] = m.frames[footer].Content(m.prompt)
+		m.frames[footer] = m.frames[footer].Content(
+			[]tea.Model{m.prompt},
+		)
 	} else {
-		m.frames[footer] = m.frames[footer].Content(m.footerModel)
+		m.frames[footer] = m.frames[footer].Content(
+			[]tea.Model{m.footerModel},
+		)
 	}
 
 	return m, tea.Batch(cmds...)
