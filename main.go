@@ -34,6 +34,8 @@ var frameHeights = map[frameId]int{
 	footer: 2,
 }
 
+var dataTable table.Model
+
 type Model struct {
 	err      error
 	quitting bool
@@ -46,7 +48,6 @@ type Model struct {
 	showprompt bool
 
 	headerModel tea.Model
-	testModel   tea.Model
 	footerModel tea.Model
 	prompt      tea.Model
 	tabs        tea.Model
@@ -71,7 +72,7 @@ func New() Model {
 	prompt := commandprompt.New(":")
 	prompt.InputShow = key.NewBinding(key.WithKeys(":"))
 
-	table := table.New(
+	dataTable = table.New(
 		table.WithColumns(cityColumns),
 		table.WithRows(cityRows),
 		table.WithFocused(true),
@@ -97,7 +98,7 @@ func New() Model {
 		tabs:        tabs,
 		cursor:      cursor,
 		models: map[string]tea.Model{
-			"one":   table,
+			"one":   dataTable,
 			"two":   s1,
 			"three": s2,
 			"four":  s3,
@@ -198,24 +199,26 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		} else if msg == "data" {
 			if m.data == 0 {
-				table := table.New(
-					table.WithColumns(charColumns),
-					table.WithRows(charRows),
-					table.WithFocused(true),
-				)
 
-				m.models["one"] = table
-				m.SetContent(m.models["one"])
+				dataTable.SetRows(charRows)
+				dataTable.SetColumns(charColumns)
+				m.models["one"] = dataTable
+
+				if m.cursor == 0 {
+					m.SetContent(m.models["one"])
+				}
+
 				m.data = 1
 			} else {
-				table := table.New(
-					table.WithColumns(cityColumns),
-					table.WithRows(cityRows),
-					table.WithFocused(true),
-				)
 
-				m.models["one"] = table
-				m.SetContent(m.models["one"])
+				dataTable.SetColumns(cityColumns)
+				dataTable.SetRows(cityRows)
+				m.models["one"] = dataTable
+
+				if m.cursor == 0 {
+					m.SetContent(m.models["one"])
+				}
+
 				m.data = 0
 			}
 
