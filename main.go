@@ -78,7 +78,7 @@ func New() Model {
 	)
 
 	headings := []string{
-		"data",
+		"table",
 		"two",
 		"three",
 		"four",
@@ -103,7 +103,7 @@ func New() Model {
 		tabs:        tabs,
 		cursor:      cursor,
 		models: map[string]tea.Model{
-			"data":  dataTable,
+			"table": dataTable,
 			"two":   s1,
 			"three": s2,
 			"four":  s3,
@@ -196,19 +196,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			dataTable.SetRows(charRows)
 			dataTable.SetColumns(charColumns)
-			m.models["one"] = dataTable
+			m.models["table"] = dataTable
 
 			if m.cursor == 0 {
-				m.SetContent(m.models["one"])
+				m.SetContent(m.models["table"])
 			}
 
 		} else if msg == "city" {
 			dataTable.SetColumns(cityColumns)
 			dataTable.SetRows(cityRows)
-			m.models["one"] = dataTable
+			m.models["table"] = dataTable
 
 			if m.cursor == 0 {
-				m.SetContent(m.models["one"])
+				m.SetContent(m.models["table"])
 			}
 
 		} else {
