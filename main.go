@@ -56,7 +56,6 @@ type Model struct {
 	models    map[string]tea.Model
 	viewOrder map[int]string
 	viewPos   map[string]int
-	data      int
 }
 
 func New() Model {
@@ -79,10 +78,16 @@ func New() Model {
 	)
 
 	headings := []string{
-		"one",
+		"data",
 		"two",
 		"three",
 		"four",
+	}
+	var viewOrder = map[int]string{}
+	var viewPos = map[string]int{}
+	for i, label := range headings {
+		viewOrder[i] = label
+		viewPos[label] = i
 	}
 
 	cursor := 2
@@ -98,23 +103,13 @@ func New() Model {
 		tabs:        tabs,
 		cursor:      cursor,
 		models: map[string]tea.Model{
-			"one":   dataTable,
+			"data":  dataTable,
 			"two":   s1,
 			"three": s2,
 			"four":  s3,
 		},
-		viewOrder: map[int]string{
-			0: "one",
-			1: "two",
-			2: "three",
-			3: "four",
-		},
-		viewPos: map[string]int{
-			"one":   0,
-			"two":   1,
-			"three": 2,
-			"four":  3,
-		},
+		viewOrder: viewOrder,
+		viewPos:   viewPos,
 	}
 
 	frames := map[frameId]*vframe.Model{
@@ -197,29 +192,23 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.quitting = true
 			return m, tea.Quit
 
-		} else if msg == "data" {
-			if m.data == 0 {
+		} else if msg == "dnd" {
 
-				dataTable.SetRows(charRows)
-				dataTable.SetColumns(charColumns)
-				m.models["one"] = dataTable
+			dataTable.SetRows(charRows)
+			dataTable.SetColumns(charColumns)
+			m.models["one"] = dataTable
 
-				if m.cursor == 0 {
-					m.SetContent(m.models["one"])
-				}
+			if m.cursor == 0 {
+				m.SetContent(m.models["one"])
+			}
 
-				m.data = 1
-			} else {
+		} else if msg == "city" {
+			dataTable.SetColumns(cityColumns)
+			dataTable.SetRows(cityRows)
+			m.models["one"] = dataTable
 
-				dataTable.SetColumns(cityColumns)
-				dataTable.SetRows(cityRows)
-				m.models["one"] = dataTable
-
-				if m.cursor == 0 {
-					m.SetContent(m.models["one"])
-				}
-
-				m.data = 0
+			if m.cursor == 0 {
+				m.SetContent(m.models["one"])
 			}
 
 		} else {
