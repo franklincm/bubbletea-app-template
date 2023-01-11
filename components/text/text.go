@@ -5,11 +5,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var style = lipgloss.NewStyle().
-	Align(lipgloss.Center).
-	Margin(0).
-	Padding(0)
-
 type Model struct {
 	style   lipgloss.Style
 	width   int
@@ -19,7 +14,7 @@ type Model struct {
 
 func New() Model {
 	return Model{
-		style:   style,
+		// style:   style,
 		content: "",
 	}
 }
@@ -38,22 +33,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	return m.style.
-		Width(m.width).
-		Height(m.height).
-		Render(m.content)
+	return m.content
 }
 
 func (m Model) Content(content string) Model {
 	m.content = content
 	return m
-}
-
-func (m Model) Style(style lipgloss.Style) Model {
-	m.style = style
-	return m
-}
-
-func (m Model) GetStyle() lipgloss.Style {
-	return m.style
 }

@@ -1,4 +1,4 @@
-package frame
+package vframe
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
@@ -14,7 +14,7 @@ type Model struct {
 	style   lipgloss.Style
 	width   int
 	height  int
-	content tea.Model
+	content []tea.Model
 }
 
 func New() *Model {
@@ -37,30 +37,46 @@ func (m Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
-		m.content, cmd = m.content.Update(msg)
-		cmds = append(cmds, cmd)
+		for i := range m.content {
+			m.content[i], cmd = m.content[i].Update(msg)
+			cmds = append(cmds, cmd)
+		}
 
 	default:
-		m.content, cmd = m.content.Update(msg)
-		cmds = append(cmds, cmd)
+		for i := range m.content {
+			m.content[i], cmd = m.content[i].Update(msg)
+			cmds = append(cmds, cmd)
+		}
 	}
 
 	return &m, tea.Batch(cmds...)
 }
 
 func (m *Model) View() string {
+	var strs []string
+	for i := range m.content {
+		strs = append(strs, m.content[i].View())
+	}
+
 	return m.style.
 		Width(m.width).
 		Height(m.height).
-		Render(m.content.View())
+		Render(
+			lipgloss.JoinVertical(m.style.GetAlign(), strs...),
+		)
 }
 
-func (m Model) Content(content tea.Model) *Model {
+func (m Model) Append(content tea.Model) *Model {
+	m.content = append(m.content, content)
+	return &m
+}
+
+func (m Model) Content(content []tea.Model) *Model {
 	m.content = content
 	return &m
 }
 
-func (m Model) GetContent() tea.Model {
+func (m Model) GetContent() []tea.Model {
 	return m.content
 }
 

@@ -3,6 +3,10 @@ repos:
     rev: v4.4.0
     hooks:
       - id: trailing-whitespace
+        exclude: |
+          (?x)^(
+            logo.go
+          )
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-added-large-files

@@ -2,15 +2,18 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"os"
 
 	key "github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	lipgloss "github.com/charmbracelet/lipgloss"
 	commandprompt "github.com/franklincm/bubbles/commandPrompt"
-	frame "github.com/franklincm/bubbletea-template/components/frame"
+	tabs "github.com/franklincm/bubbles/tabs"
 	spinner "github.com/franklincm/bubbletea-template/components/spinner"
+	table "github.com/franklincm/bubbletea-template/components/table"
 	text "github.com/franklincm/bubbletea-template/components/text"
+	vframe "github.com/franklincm/bubbletea-template/components/vframe"
 	config "github.com/franklincm/bubbletea-template/config"
 )
 
@@ -27,58 +30,110 @@ const (
 var conf = config.New()
 
 var frameHeights = map[frameId]int{
-	header: 2,
+	header: 9,
 	footer: 2,
 }
 
+var dataTable table.Model
+
 type Model struct {
+	err      error
+	quitting bool
+
 	width  int
 	height int
 
-	err         error
-	quitting    bool
-	spinner     tea.Model
-	spinner2    tea.Model
+	cursor     int
+	input      string
+	showprompt bool
+
 	headerModel tea.Model
 	footerModel tea.Model
 	prompt      tea.Model
-	input       string
-	showprompt  bool
+	tabs        tea.Model
 
-	frames map[frameId]*frame.Model
+	frames    map[frameId]*vframe.Model
+	models    map[string]tea.Model
+	viewOrder map[int]string
+	viewPos   map[string]int
 }
 
 func New() Model {
-	s := spinner.New()
-	s.Spinner = spinner.Dot
+	s1 := spinner.New()
+	s1.Spinner = spinner.Dot
 
 	s2 := spinner.New()
 	s2.Spinner = spinner.Points
 
-	p := commandprompt.New(":")
-	p.InputShow = key.NewBinding(key.WithKeys(":"))
+	s3 := spinner.New()
+	s3.Spinner = spinner.Pulse
 
-	m := Model{
-		headerModel: text.New().Content("header"),
-		footerModel: text.New().Content("footer"),
-		spinner:     s,
-		spinner2:    s2,
-		prompt:      p,
+	prompt := commandprompt.New(":")
+	prompt.InputShow = key.NewBinding(key.WithKeys(":"))
+
+	dataTable = table.New(
+		table.WithColumns(cityColumns),
+		table.WithRows(cityRows),
+		table.WithFocused(true),
+	)
+
+	headings := []string{
+		"table",
+		"two",
+		"three",
+		"four",
+	}
+	var viewOrder = map[int]string{}
+	var viewPos = map[string]int{}
+	for i, label := range headings {
+		viewOrder[i] = label
+		viewPos[label] = i
 	}
 
-	frames := map[frameId]*frame.Model{
-		header: frame.
+	cursor := 2
+	tabs := tabs.New(headings)
+	tabs = tabs.FocusedStyle(tabFocusedStyle)
+	tabs = tabs.BlurredStyle(tabBlurredStyle)
+	tabs = tabs.SetFocused(cursor)
+
+	m := Model{
+		headerModel: text.New().Content(logo),
+		footerModel: text.New().Content("footer"),
+		prompt:      prompt,
+		tabs:        tabs,
+		cursor:      cursor,
+		models: map[string]tea.Model{
+			"table": dataTable,
+			"two":   s1,
+			"three": s2,
+			"four":  s3,
+		},
+		viewOrder: viewOrder,
+		viewPos:   viewPos,
+	}
+
+	frames := map[frameId]*vframe.Model{
+		header: vframe.
 			New().
 			Style(headerStyle).
-			Content(m.headerModel),
-		body: frame.
+			Content(
+				[]tea.Model{
+					m.headerModel,
+					m.tabs,
+				},
+			),
+		body: vframe.
 			New().
 			Style(bodyStyle).
-			Content(m.spinner),
-		footer: frame.
+			Content(
+				[]tea.Model{m.models["three"]},
+			),
+		footer: vframe.
 			New().
 			Style(footerStyle).
-			Content(m.footerModel),
+			Content(
+				[]tea.Model{m.footerModel},
+			),
 	}
 
 	m.frames = frames
@@ -89,8 +144,9 @@ func New() Model {
 func (m Model) Init() tea.Cmd {
 	return tea.Batch(
 		tea.EnterAltScreen,
-		m.spinner.(spinner.Model).Tick,
-		m.spinner2.(spinner.Model).Tick,
+		m.models["two"].(spinner.Model).Tick,
+		m.models["three"].(spinner.Model).Tick,
+		m.models["four"].(spinner.Model).Tick,
 		m.prompt.Init(),
 	)
 }
@@ -123,7 +179,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// update body
 		m.frames[body], cmd = m.frames[body].Update(tea.WindowSizeMsg{
-			Width:  msg.Width,
+			Width:  msg.Width - 2,
 			Height: msg.Height - frameHeights[header] - frameHeights[footer] - len(frameHeights),
 		})
 		cmds = append(cmds, cmd)
@@ -136,13 +192,31 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.quitting = true
 			return m, tea.Quit
 
-		} else if msg == "c" {
-			tmp := m.frames[header].GetContent()
-			m.frames[header] = m.frames[header].Content(m.frames[body].GetContent())
-			m.frames[body] = m.frames[body].Content(tmp)
+		} else if msg == "dnd" {
 
-		} else if msg == "s" {
-			m.frames[body] = m.frames[body].Content(m.spinner2)
+			dataTable.SetRows(charRows)
+			dataTable.SetColumns(charColumns)
+			m.models["table"] = dataTable
+
+			if m.cursor == 0 {
+				m.SetContent(m.models["table"])
+			}
+
+		} else if msg == "city" {
+			dataTable.SetColumns(cityColumns)
+			dataTable.SetRows(cityRows)
+			m.models["table"] = dataTable
+
+			if m.cursor == 0 {
+				m.SetContent(m.models["table"])
+			}
+
+		} else {
+			model, ok := m.models[string(msg)]
+			if ok {
+				m.setCursor(m.viewPos[string(msg)])
+				m.SetContent(model)
+			}
 		}
 
 	case commandprompt.PromptEditing:
@@ -153,11 +227,31 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if key.Matches(msg, quitKeys) && !m.showprompt {
 			m.quitting = true
 			return m, tea.Quit
-		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["left"]))) {
-			m.frames[body] = m.frames[body].Content(m.spinner)
-		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["right"]))) {
-			m.frames[body] = m.frames[body].Content(m.spinner2)
+
+		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["left"]))) && !m.showprompt {
+			m.cursorPrev()
+			m.SetContent(m.models[m.viewOrder[m.cursor]])
+
+			return m, cmd
+
+		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["right"]))) && !m.showprompt {
+			m.cursorNext()
+			m.SetContent(m.models[m.viewOrder[m.cursor]])
+
+		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["down"]))) && !m.showprompt {
+			m.frames[body], cmd = m.frames[body].Update(msg)
+			return m, cmd
+
+		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["up"]))) && !m.showprompt {
+			m.frames[body], cmd = m.frames[body].Update(msg)
+			return m, cmd
+
 		}
+
+		m.prompt, cmd = m.prompt.Update(msg)
+		cmds = append(cmds, cmd)
+
+		return m, tea.Batch(cmds...)
 
 	case errMsg:
 		m.err = msg
@@ -170,17 +264,23 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	m.prompt, cmd = m.prompt.Update(msg)
-	cmds = append(cmds, cmd)
-	m.spinner, cmd = m.spinner.Update(msg)
-	cmds = append(cmds, cmd)
-	m.spinner2, cmd = m.spinner2.Update(msg)
+	m.tabs, cmd = m.tabs.Update(msg)
 	cmds = append(cmds, cmd)
 
+	// update main models
+	for model := range m.models {
+		m.models[model], cmd = m.models[model].Update(msg)
+		cmds = append(cmds, cmd)
+	}
+
 	if m.showprompt {
-		m.frames[footer] = m.frames[footer].Content(m.prompt)
+		m.frames[footer] = m.frames[footer].Content(
+			[]tea.Model{m.prompt},
+		)
 	} else {
-		m.frames[footer] = m.frames[footer].Content(m.footerModel)
+		m.frames[footer] = m.frames[footer].Content(
+			[]tea.Model{m.footerModel},
+		)
 	}
 
 	return m, tea.Batch(cmds...)
@@ -199,6 +299,42 @@ func (m Model) View() string {
 			m.frames[footer].View(),
 		),
 	)
+}
+
+func (m Model) SetContent(tm tea.Model) {
+	m.frames[header] = m.frames[header].Content(
+		[]tea.Model{
+			m.headerModel,
+			m.tabs,
+		},
+	)
+
+	m.frames[body] = m.frames[body].Content(
+		[]tea.Model{tm},
+	)
+
+	m.frames[body], _ = m.frames[body].Update(tea.WindowSizeMsg{
+		Width:  bodyStyle.GetWidth(),
+		Height: bodyStyle.GetHeight(),
+	})
+}
+
+func (m *Model) setCursor(index int) {
+	if index >= 0 && index <= len(m.tabs.(tabs.Model).GetHeadings()) {
+		m.cursor = index
+		m.tabs = m.tabs.(tabs.Model).SetFocused(m.cursor)
+	}
+}
+
+func (m *Model) cursorNext() {
+	numHeadings := len(m.tabs.(tabs.Model).GetHeadings())
+	m.cursor = int(math.Min(float64(m.cursor+1), float64(numHeadings-1)))
+	m.tabs = m.tabs.(tabs.Model).SetFocused(m.cursor)
+}
+
+func (m *Model) cursorPrev() {
+	m.cursor = int(math.Max(float64(m.cursor-1), 0))
+	m.tabs = m.tabs.(tabs.Model).SetFocused(m.cursor)
 }
 
 func main() {
