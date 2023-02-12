@@ -6,6 +6,7 @@ import (
 	"log"
 	"math"
 	"os"
+	"strings"
 
 	key "github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
@@ -48,6 +49,8 @@ type Model struct {
 	activeTab              int
 	input                  string
 	inputSuggestionCounter int
+	inputHint              string
+	suggestions            []string
 	showprompt             bool
 
 	headerModel tea.Model
@@ -191,6 +194,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case commandprompt.PromptInput:
 		log.Println("prompt input: ", msg)
+		m.suggestions = nil
+		m.inputSuggestionCounter = 0
+		m.inputHint = ""
+
 		if msg == "quit" || msg == "q" {
 			m.quitting = true
 			return m, tea.Quit
@@ -250,15 +257,29 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, cmd
 
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys("tab"))) && m.showprompt {
-			// tab suggest cycles through tab headings
+
+			headings := m.tabs.(tabs.Model).GetHeadings()
+
+			if len(m.inputHint) == 0 {
+				m.inputHint = m.prompt.(commandprompt.Model).TextInput.Value()
+			}
+
+			log.Println("hint: ", m.inputHint)
+
+			if len(m.suggestions) == 0 {
+				for _, heading := range headings {
+					if strings.Contains(strings.ToLower(heading), m.inputHint) {
+						m.suggestions = append(m.suggestions, heading)
+					}
+				}
+			}
+
 			m.prompt = m.prompt.(commandprompt.Model).SetValue(
-				m.tabs.(tabs.Model).GetHeadings()[m.inputSuggestionCounter],
+				m.suggestions[m.inputSuggestionCounter],
 			)
 
-			m.inputSuggestionCounter = (m.inputSuggestionCounter + 1) % len(m.tabs.(tabs.Model).GetHeadings())
-
-			log.Println("Tab! Editing...")
-			log.Println(m.prompt.(commandprompt.Model).TextInput.Value())
+			m.inputSuggestionCounter = (m.inputSuggestionCounter + 1) % len(m.suggestions)
+			log.Println("suggestion: ", m.prompt.(commandprompt.Model).TextInput.Value())
 
 		}
 
