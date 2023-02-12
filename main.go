@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -29,6 +30,8 @@ const (
 	body
 	footer
 )
+
+var command string
 
 var conf = config.New()
 
@@ -147,6 +150,9 @@ func New() Model {
 }
 
 func (m Model) Init() tea.Cmd {
+	m.Update(commandprompt.PromptInput(command))
+	command = ""
+
 	return tea.Batch(
 		tea.EnterAltScreen,
 		m.models["two"].(spinner.Model).Tick,
@@ -383,6 +389,9 @@ func main() {
 	} else {
 		log.SetOutput(ioutil.Discard)
 	}
+
+	flag.StringVar(&command, "c", "", "help")
+	flag.Parse()
 
 	p := tea.NewProgram(New(), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
