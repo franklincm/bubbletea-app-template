@@ -43,7 +43,7 @@ type Model struct {
 	width  int
 	height int
 
-	cursor     int
+	activeTab  int
 	input      string
 	showprompt bool
 
@@ -52,10 +52,9 @@ type Model struct {
 	prompt      tea.Model
 	tabs        tea.Model
 
-	frames    map[frameId]*vframe.Model
-	models    map[string]tea.Model
-	viewOrder map[int]string
-	viewPos   map[string]int
+	frames       map[frameId]*vframe.Model
+	models       map[string]tea.Model
+	tabPosLookup map[string]int
 }
 
 func New() Model {
@@ -83,33 +82,33 @@ func New() Model {
 		"three",
 		"four",
 	}
-	var viewOrder = map[int]string{}
-	var viewPos = map[string]int{}
-	for i, label := range headings {
-		viewOrder[i] = label
-		viewPos[label] = i
+
+	models := map[string]tea.Model{
+		headings[0]: dataTable,
+		headings[1]: s1,
+		headings[2]: s2,
+		headings[3]: s3,
 	}
 
-	cursor := 2
+	var tabPosLookup = map[string]int{}
+	for i, label := range headings {
+		tabPosLookup[label] = i
+	}
+
+	activeTab := 2
 	tabs := tabs.New(headings)
 	tabs = tabs.FocusedStyle(tabFocusedStyle)
 	tabs = tabs.BlurredStyle(tabBlurredStyle)
-	tabs = tabs.SetFocused(cursor)
+	tabs = tabs.SetFocused(activeTab)
 
 	m := Model{
-		headerModel: text.New().Content(logo),
-		footerModel: text.New().Content("footer"),
-		prompt:      prompt,
-		tabs:        tabs,
-		cursor:      cursor,
-		models: map[string]tea.Model{
-			"table": dataTable,
-			"two":   s1,
-			"three": s2,
-			"four":  s3,
-		},
-		viewOrder: viewOrder,
-		viewPos:   viewPos,
+		headerModel:  text.New().Content(logo),
+		footerModel:  text.New().Content("footer"),
+		prompt:       prompt,
+		tabs:         tabs,
+		activeTab:    activeTab,
+		models:       models,
+		tabPosLookup: tabPosLookup,
 	}
 
 	frames := map[frameId]*vframe.Model{
@@ -198,7 +197,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			dataTable.SetColumns(charColumns)
 			m.models["table"] = dataTable
 
-			if m.cursor == 0 {
+			if m.activeTab == 0 {
 				m.SetContent(m.models["table"])
 			}
 
@@ -207,14 +206,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			dataTable.SetRows(cityRows)
 			m.models["table"] = dataTable
 
-			if m.cursor == 0 {
+			if m.activeTab == 0 {
 				m.SetContent(m.models["table"])
 			}
 
 		} else {
 			model, ok := m.models[string(msg)]
 			if ok {
-				m.setCursor(m.viewPos[string(msg)])
+				m.setActiveTab(m.tabPosLookup[string(msg)])
 				m.SetContent(model)
 			}
 		}
@@ -229,14 +228,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["left"]))) && !m.showprompt {
-			m.cursorPrev()
-			m.SetContent(m.models[m.viewOrder[m.cursor]])
+			m.tabPrev()
+			m.SetContent(m.models[m.tabs.(tabs.Model).GetHeadings()[m.activeTab]])
 
 			return m, cmd
 
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["right"]))) && !m.showprompt {
-			m.cursorNext()
-			m.SetContent(m.models[m.viewOrder[m.cursor]])
+			m.tabNext()
+			m.SetContent(m.models[m.tabs.(tabs.Model).GetHeadings()[m.activeTab]])
 
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["down"]))) && !m.showprompt {
 			m.frames[body], cmd = m.frames[body].Update(msg)
@@ -319,22 +318,22 @@ func (m Model) SetContent(tm tea.Model) {
 	})
 }
 
-func (m *Model) setCursor(index int) {
+func (m *Model) setActiveTab(index int) {
 	if index >= 0 && index <= len(m.tabs.(tabs.Model).GetHeadings()) {
-		m.cursor = index
-		m.tabs = m.tabs.(tabs.Model).SetFocused(m.cursor)
+		m.activeTab = index
+		m.tabs = m.tabs.(tabs.Model).SetFocused(m.activeTab)
 	}
 }
 
-func (m *Model) cursorNext() {
+func (m *Model) tabNext() {
 	numHeadings := len(m.tabs.(tabs.Model).GetHeadings())
-	m.cursor = int(math.Min(float64(m.cursor+1), float64(numHeadings-1)))
-	m.tabs = m.tabs.(tabs.Model).SetFocused(m.cursor)
+	m.activeTab = int(math.Min(float64(m.activeTab+1), float64(numHeadings-1)))
+	m.tabs = m.tabs.(tabs.Model).SetFocused(m.activeTab)
 }
 
-func (m *Model) cursorPrev() {
-	m.cursor = int(math.Max(float64(m.cursor-1), 0))
-	m.tabs = m.tabs.(tabs.Model).SetFocused(m.cursor)
+func (m *Model) tabPrev() {
+	m.activeTab = int(math.Max(float64(m.activeTab-1), 0))
+	m.tabs = m.tabs.(tabs.Model).SetFocused(m.activeTab)
 }
 
 func main() {
