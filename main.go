@@ -254,6 +254,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.SetContent(m.models[m.tabs.(tabs.Model).GetHeadings()[m.activeTab]])
 			return m, cmd
 
+			// table key bindings
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["down"]))) && !m.showprompt {
 			m.frames[body], cmd = m.frames[body].Update(msg)
 			return m, cmd
@@ -262,6 +263,31 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.frames[body], cmd = m.frames[body].Update(msg)
 			return m, cmd
 
+		} else if key.Matches(msg, key.NewBinding(key.WithKeys("g"))) && !m.showprompt {
+			m.frames[body], cmd = m.frames[body].Update(msg)
+			return m, cmd
+
+		} else if key.Matches(msg, key.NewBinding(key.WithKeys("G"))) && !m.showprompt {
+			m.frames[body], cmd = m.frames[body].Update(msg)
+			return m, cmd
+
+		} else if key.Matches(msg, key.NewBinding(key.WithKeys("ctrl+u"))) && !m.showprompt {
+			m.frames[body], cmd = m.frames[body].Update(msg)
+			return m, cmd
+
+		} else if key.Matches(msg, key.NewBinding(key.WithKeys("ctrl+d"))) && !m.showprompt {
+			m.frames[body], cmd = m.frames[body].Update(msg)
+			return m, cmd
+
+		} else if key.Matches(msg, key.NewBinding(key.WithKeys(" "))) && !m.showprompt {
+			m.frames[body], cmd = m.frames[body].Update(msg)
+			return m, cmd
+
+		} else if key.Matches(msg, key.NewBinding(key.WithKeys("b"))) && !m.showprompt {
+			m.frames[body], cmd = m.frames[body].Update(msg)
+			return m, cmd
+
+			// tab suggestions
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys("tab"))) && m.showprompt {
 
 			headings := m.tabs.(tabs.Model).GetHeadings()
