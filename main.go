@@ -31,7 +31,10 @@ const (
 	footer
 )
 
-var command string
+var (
+	command   string
+	activeTab int
+)
 
 var conf = config.New()
 
@@ -49,7 +52,6 @@ type Model struct {
 	width  int
 	height int
 
-	activeTab              int
 	input                  string
 	inputSuggestionCounter int
 	inputHint              string
@@ -104,7 +106,6 @@ func New() Model {
 		tabPosLookup[label] = i
 	}
 
-	activeTab := 2
 	tabs := tabs.New(headings)
 	tabs = tabs.FocusedStyle(tabFocusedStyle)
 	tabs = tabs.BlurredStyle(tabBlurredStyle)
@@ -115,7 +116,6 @@ func New() Model {
 		footerModel:  text.New().Content("footer"),
 		prompt:       prompt,
 		tabs:         tabs,
-		activeTab:    activeTab,
 		models:       models,
 		tabPosLookup: tabPosLookup,
 	}
@@ -214,7 +214,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			dataTable.SetColumns(charColumns)
 			m.models["table"] = dataTable
 
-			if m.activeTab == 0 {
+			if activeTab == 0 {
 				m.SetContent(m.models["table"])
 			}
 
@@ -223,7 +223,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			dataTable.SetRows(cityRows)
 			m.models["table"] = dataTable
 
-			if m.activeTab == 0 {
+			if activeTab == 0 {
 				m.SetContent(m.models["table"])
 			}
 
@@ -246,12 +246,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["left"]))) && !m.showprompt {
 			m.tabPrev()
-			m.SetContent(m.models[m.tabs.(tabs.Model).GetHeadings()[m.activeTab]])
+			m.SetContent(m.models[m.tabs.(tabs.Model).GetHeadings()[activeTab]])
 			return m, cmd
 
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["right"]))) && !m.showprompt {
 			m.tabNext()
-			m.SetContent(m.models[m.tabs.(tabs.Model).GetHeadings()[m.activeTab]])
+			m.SetContent(m.models[m.tabs.(tabs.Model).GetHeadings()[activeTab]])
 			return m, cmd
 
 			// table key bindings
@@ -388,20 +388,20 @@ func (m Model) SetContent(tm tea.Model) {
 
 func (m *Model) setActiveTab(index int) {
 	if index >= 0 && index <= len(m.tabs.(tabs.Model).GetHeadings()) {
-		m.activeTab = index
-		m.tabs = m.tabs.(tabs.Model).SetFocused(m.activeTab)
+		activeTab = index
+		m.tabs = m.tabs.(tabs.Model).SetFocused(activeTab)
 	}
 }
 
 func (m *Model) tabNext() {
 	numHeadings := len(m.tabs.(tabs.Model).GetHeadings())
-	m.activeTab = int(math.Min(float64(m.activeTab+1), float64(numHeadings-1)))
-	m.tabs = m.tabs.(tabs.Model).SetFocused(m.activeTab)
+	activeTab = int(math.Min(float64(activeTab+1), float64(numHeadings-1)))
+	m.tabs = m.tabs.(tabs.Model).SetFocused(activeTab)
 }
 
 func (m *Model) tabPrev() {
-	m.activeTab = int(math.Max(float64(m.activeTab-1), 0))
-	m.tabs = m.tabs.(tabs.Model).SetFocused(m.activeTab)
+	activeTab = int(math.Max(float64(activeTab-1), 0))
+	m.tabs = m.tabs.(tabs.Model).SetFocused(activeTab)
 }
 
 func main() {
