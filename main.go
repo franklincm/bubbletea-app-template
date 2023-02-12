@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
 	"math"
 	"os"
 
@@ -43,9 +45,10 @@ type Model struct {
 	width  int
 	height int
 
-	activeTab  int
-	input      string
-	showprompt bool
+	activeTab              int
+	input                  string
+	inputSuggestionCounter int
+	showprompt             bool
 
 	headerModel tea.Model
 	footerModel tea.Model
@@ -187,6 +190,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, tea.ClearScreen)
 
 	case commandprompt.PromptInput:
+		log.Println("prompt input: ", msg)
 		if msg == "quit" || msg == "q" {
 			m.quitting = true
 			return m, tea.Quit
@@ -230,12 +234,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["left"]))) && !m.showprompt {
 			m.tabPrev()
 			m.SetContent(m.models[m.tabs.(tabs.Model).GetHeadings()[m.activeTab]])
-
 			return m, cmd
 
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["right"]))) && !m.showprompt {
 			m.tabNext()
 			m.SetContent(m.models[m.tabs.(tabs.Model).GetHeadings()[m.activeTab]])
+			return m, cmd
 
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["down"]))) && !m.showprompt {
 			m.frames[body], cmd = m.frames[body].Update(msg)
@@ -244,6 +248,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["up"]))) && !m.showprompt {
 			m.frames[body], cmd = m.frames[body].Update(msg)
 			return m, cmd
+
+		} else if key.Matches(msg, key.NewBinding(key.WithKeys("tab"))) && m.showprompt {
+			// tab suggest cycles through tab headings
+			m.prompt = m.prompt.(commandprompt.Model).SetValue(
+				m.tabs.(tabs.Model).GetHeadings()[m.inputSuggestionCounter],
+			)
+
+			m.inputSuggestionCounter = (m.inputSuggestionCounter + 1) % len(m.tabs.(tabs.Model).GetHeadings())
+
+			log.Println("Tab! Editing...")
+			log.Println(m.prompt.(commandprompt.Model).TextInput.Value())
 
 		}
 
@@ -337,6 +352,17 @@ func (m *Model) tabPrev() {
 }
 
 func main() {
+	if len(os.Getenv("DEBUG")) > 0 {
+		f, err := tea.LogToFile("debug.log", "debug")
+		if err != nil {
+			fmt.Println("fatal: ", err)
+			os.Exit(1)
+		}
+		defer f.Close()
+	} else {
+		log.SetOutput(ioutil.Discard)
+	}
+
 	p := tea.NewProgram(New(), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		fmt.Println(err)
