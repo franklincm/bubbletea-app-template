@@ -306,13 +306,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 
-			m.prompt = m.prompt.(commandprompt.Model).SetValue(
-				m.suggestions[m.inputSuggestionCounter],
-			)
+			if len(m.suggestions) > 0 {
+				m.prompt = m.prompt.(commandprompt.Model).SetValue(
+					m.suggestions[m.inputSuggestionCounter],
+				)
 
-			m.inputSuggestionCounter = (m.inputSuggestionCounter + 1) % len(m.suggestions)
-			log.Println("suggestion: ", m.prompt.(commandprompt.Model).TextInput.Value())
+				m.inputSuggestionCounter = (m.inputSuggestionCounter + 1) % len(m.suggestions)
+				log.Println("suggestion: ", m.prompt.(commandprompt.Model).TextInput.Value())
+			}
 
+		} else {
+			m.suggestions = nil
+			m.inputSuggestionCounter = 0
+			m.inputHint = ""
 		}
 
 		m.prompt, cmd = m.prompt.Update(msg)
