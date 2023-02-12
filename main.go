@@ -199,7 +199,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, tea.ClearScreen)
 
 	case commandprompt.PromptInput:
-		log.Println("prompt input: ", msg)
+		log.Printf("prompt input: %#v", msg)
 		m.suggestions = nil
 		m.inputSuggestionCounter = 0
 		m.inputHint = ""
@@ -415,6 +415,9 @@ func main() {
 	} else {
 		log.SetOutput(ioutil.Discard)
 	}
+
+	log.Printf("\n\n\n\n")
+	log.Printf("--------------------\n")
 
 	flag.StringVar(&command, "c", "", "help")
 	flag.Parse()
