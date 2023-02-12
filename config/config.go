@@ -2,11 +2,12 @@ package config
 
 import (
 	"errors"
-	"fmt"
 	"io/fs"
+	"log"
 	"os"
 
 	"github.com/BurntSushi/toml"
+	"github.com/imdario/mergo"
 )
 
 type (
@@ -33,12 +34,16 @@ func New() Config {
 
 	_, err := toml.DecodeFile("config.toml", &config)
 	if err == nil {
-		return config
+		if err := mergo.Merge(&config, defaultConfig); err != nil {
+			return config
+		}
 	}
 
 	_, err = toml.DecodeFile("/etc/cb/config.toml", &config)
 	if err == nil {
-		return config
+		if err := mergo.Merge(&config, defaultConfig); err != nil {
+			return config
+		}
 	}
 
 	_, err = toml.DecodeFile(
@@ -46,7 +51,9 @@ func New() Config {
 		&config,
 	)
 	if err == nil {
-		return config
+		if err := mergo.Merge(&config, defaultConfig); err != nil {
+			return config
+		}
 	}
 
 	_, err = toml.DecodeFile(
@@ -54,21 +61,25 @@ func New() Config {
 		&config,
 	)
 	if err == nil {
-		return config
+		if err := mergo.Merge(&config, defaultConfig); err != nil {
+			return config
+		}
 	}
 
 	_, err = toml.DecodeFile(os.Getenv("CB_CONFIG_PATH"), &config)
 	if err == nil {
-		return config
+		if err := mergo.Merge(&config, defaultConfig); err != nil {
+			return config
+		}
 	}
 
 	var pathError *fs.PathError
 
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "config not found")
+		log.Println("config not found")
 
 		if errors.As(err, &pathError) {
-			fmt.Fprintln(os.Stderr, "using defaults")
+			log.Println("using defaults")
 			return defaultConfig
 		}
 	}
