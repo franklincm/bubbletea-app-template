@@ -1,19 +1,37 @@
 # bubbletea-app-template
 
-A template repository to create [Bubbletea][bubbletea] apps.
+## Options
 
-## Included
+```
+-c <command>
+```
 
-- a sample app that does nothing, so it includes all dependencies:
-	- [bubbletea][]
-	- [bubbles][]
-	- [lipgloss][]
-- github actions workflows for build, test, lint and release
-- [GoReleaser][goreleaser] configs
-- [golangci-lint][lint] configs
+## Config (TOML)
 
-[bubbletea]: https://github.com/charmbracelet/bubbletea
-[bubbles]: https://github.com/charmbracelet/bubbles
-[lipgloss]: https://github.com/charmbracelet/lipgloss
-[goreleaser]: https://goreleaser.com
-[lint]: https://golangci-lint.run
+Config paths:
+
+- `/etc/cb/config.toml`
+- `~/.cb.toml`
+- `~/.config/cb/config.toml`
+- Environment: `CB_CONFIG_PATH`
+
+
+```toml
+[keys.global]
+left = "h"
+down = "j"
+up = "k"
+right = "l"
+```
+
+## Debug
+
+```
+make && DEBUG=1 ./dist/template
+```
+
+In a separate terminal:
+
+```
+tail -f debug.log
+```
