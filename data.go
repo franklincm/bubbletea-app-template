@@ -13,7 +13,7 @@ var (
 		{"Dregg FreeOrc", "Half-Orc", "Barbarian"},
 		{"Farhan Clockstop", "Gnome", "Wizard"},
 		{"Rokun", "Half-Orc", "Paladin"},
-		{"Venti Neuve", "Elv", "Druid"},
+		{"Venti Neuve", "Elf", "Druid"},
 		{"Vovon Ven", "Human", "Rogue"},
 	}
 

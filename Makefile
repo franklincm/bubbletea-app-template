@@ -25,7 +25,7 @@ test:
 	go test
 .PHONY:test
 
-vhs:
+vhs: build
 	vhs demo.tape
 .PHONY: vhs
 
