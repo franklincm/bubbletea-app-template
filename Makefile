@@ -25,6 +25,10 @@ test:
 	go test
 .PHONY:test
 
+vhs:
+	vhs demo.tape
+.PHONY: vhs
+
 clean:
 	$(RM) -rf dist/
 .PHONY:clean
