@@ -2,11 +2,11 @@ package text
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	// "github.com/charmbracelet/lipgloss"
 )
 
 type Model struct {
-	style   lipgloss.Style
+	// style   lipgloss.Style
 	width   int
 	height  int
 	content string

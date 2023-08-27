@@ -36,8 +36,10 @@ var (
 	activeTab int
 )
 
-var conf = config.New()
-var styles = NewStyle(conf)
+var (
+	conf   = config.New()
+	styles = NewStyle(conf)
+)
 
 var frameHeights = map[frameId]int{
 	header: 9,
@@ -53,7 +55,6 @@ type Model struct {
 	width  int
 	height int
 
-	input                  string
 	inputSuggestionCounter int
 	inputHint              string
 	suggestions            []string
@@ -102,19 +103,19 @@ func New() Model {
 			),
 			PageUp: key.NewBinding(
 				key.WithKeys(conf.Keys["global"]["pageUp"]),
-				key.WithHelp(fmt.Sprintf("%s", conf.Keys["global"]["pageUp"]), "pageUp"),
+				key.WithHelp(conf.Keys["global"]["pageUp"], "pageUp"),
 			),
 			PageDown: key.NewBinding(
 				key.WithKeys(conf.Keys["global"]["pageDown"]),
-				key.WithHelp(fmt.Sprintf("%s", conf.Keys["global"]["pageDown"]), "pageDown"),
+				key.WithHelp(conf.Keys["global"]["pageDown"], "pageDown"),
 			),
 			HalfPageUp: key.NewBinding(
 				key.WithKeys(conf.Keys["global"]["halfPageUp"]),
-				key.WithHelp(fmt.Sprintf("%s", conf.Keys["global"]["halfPageUp"]), "halfPageUp"),
+				key.WithHelp(conf.Keys["global"]["halfPageUp"], "halfPageUp"),
 			),
 			HalfPageDown: key.NewBinding(
 				key.WithKeys(conf.Keys["global"]["halfPageDown"]),
-				key.WithHelp(fmt.Sprintf("%s", conf.Keys["global"]["halfPageDown"]), "halfPageDown"),
+				key.WithHelp(conf.Keys["global"]["halfPageDown"], "halfPageDown"),
 			),
 			GotoTop: key.NewBinding(
 				key.WithKeys("home", "g"),
@@ -141,7 +142,7 @@ func New() Model {
 		headings[3]: s3,
 	}
 
-	var tabPosLookup = map[string]int{}
+	tabPosLookup := map[string]int{}
 	for i, label := range headings {
 		tabPosLookup[label] = i
 	}
