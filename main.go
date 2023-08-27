@@ -37,6 +37,7 @@ var (
 )
 
 var conf = config.New()
+var styles = NewStyle(conf)
 
 var frameHeights = map[frameId]int{
 	header: 9,
@@ -86,21 +87,9 @@ func New() Model {
 		table.WithRows(cityRows),
 		table.WithFocused(true),
 		table.WithStyles(table.Styles{
-			Selected: lipgloss.
-				NewStyle().
-				Bold(true).
-				Background(lipgloss.Color("240")).
-				Foreground(lipgloss.Color("212")),
-			Header: lipgloss.
-				NewStyle().
-				BorderStyle(lipgloss.NormalBorder()).
-				BorderForeground(lipgloss.Color("240")).
-				BorderBottom(true).
-				Bold(false),
-
-			Cell: lipgloss.
-				NewStyle().
-				Padding(0, 0),
+			Cell:     styles.tableCell,
+			Header:   styles.tableHeader,
+			Selected: styles.tableSelected,
 		}),
 		table.WithKeyMap(table.KeyMap{
 			LineUp: key.NewBinding(
@@ -158,8 +147,8 @@ func New() Model {
 	}
 
 	tabs := tabs.New(headings)
-	tabs = tabs.FocusedStyle(tabFocusedStyle)
-	tabs = tabs.BlurredStyle(tabBlurredStyle)
+	tabs = tabs.FocusedStyle(styles.tabFocusedStyle)
+	tabs = tabs.BlurredStyle(styles.tabBlurredStyle)
 	tabs = tabs.SetFocused(activeTab)
 
 	m := Model{
@@ -174,7 +163,7 @@ func New() Model {
 	frames := map[frameId]*vframe.Model{
 		header: vframe.
 			New().
-			Style(headerStyle).
+			Style(styles.headerStyle).
 			Content(
 				[]tea.Model{
 					m.headerModel,
@@ -183,13 +172,13 @@ func New() Model {
 			),
 		body: vframe.
 			New().
-			Style(bodyStyle).
+			Style(styles.bodyStyle).
 			Content(
 				[]tea.Model{m.models["three"]},
 			),
 		footer: vframe.
 			New().
-			Style(footerStyle).
+			Style(styles.footerStyle).
 			Content(
 				[]tea.Model{m.footerModel},
 			),
@@ -415,7 +404,7 @@ func (m Model) View() string {
 		return m.err.Error()
 	}
 
-	return fullscreenStyle.Render(
+	return styles.fullscreenStyle.Render(
 		lipgloss.JoinVertical(
 			lipgloss.Center,
 			m.frames[header].View(),
@@ -438,8 +427,8 @@ func (m Model) SetContent(tm tea.Model) {
 	)
 
 	m.frames[body], _ = m.frames[body].Update(tea.WindowSizeMsg{
-		Width:  bodyStyle.GetWidth(),
-		Height: bodyStyle.GetHeight(),
+		Width:  styles.bodyStyle.GetWidth(),
+		Height: styles.bodyStyle.GetHeight(),
 	})
 }
 

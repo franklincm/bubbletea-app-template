@@ -12,7 +12,8 @@ import (
 
 type (
 	Config struct {
-		Keys map[string]Keymap `toml:"keys"`
+		Keys   map[string]Keymap `toml:"keys"`
+		Styles map[string]string `toml:"styles"`
 	}
 
 	Keymap map[string]string
@@ -30,6 +31,16 @@ var defaultConfig = Config{
 			"pageDown":     " ",
 			"pageUp":       "b",
 		},
+	},
+	Styles: map[string]string{
+		"borderForeground":        "#458588",
+		"tabBlurredBackground":    "#282828",
+		"tabBlurredForeground":    "#928374",
+		"tabFocusedBackground":    "#98971a",
+		"tabFocusedForeground":    "#ebdbb2",
+		"tableHeaderForeground":   "#3c3836",
+		"tableSelectedBackground": "#282828",
+		"tableSelectedForeground": "#d3869b",
 	},
 }
 
