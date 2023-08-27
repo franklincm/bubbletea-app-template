@@ -4,6 +4,12 @@ down = "j"
 up = "k"
 right = "l"
 
+halfPageDown = "ctrl+d"
+halfPageUp = "ctrl+u"
+
+pageDown = " "
+pageUp = "b"
+
 describe = "d"
 edit = "e"
 refresh = "r"

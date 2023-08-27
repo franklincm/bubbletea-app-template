@@ -21,10 +21,14 @@ type (
 var defaultConfig = Config{
 	Keys: map[string]Keymap{
 		"global": {
-			"left":  "h",
-			"down":  "j",
-			"up":    "k",
-			"right": "l",
+			"left":         "h",
+			"down":         "j",
+			"up":           "k",
+			"right":        "l",
+			"halfPageDown": "ctrl+d",
+			"halfPageUp":   "ctrl+u",
+			"pageDown":     " ",
+			"pageUp":       "b",
 		},
 	},
 }
@@ -34,14 +38,14 @@ func New() Config {
 
 	_, err := toml.DecodeFile("config.toml", &config)
 	if err == nil {
-		if err := mergo.Merge(&config, defaultConfig); err != nil {
+		if err := mergo.Merge(defaultConfig, &config); err != nil {
 			return config
 		}
 	}
 
 	_, err = toml.DecodeFile("/etc/cb/config.toml", &config)
 	if err == nil {
-		if err := mergo.Merge(&config, defaultConfig); err != nil {
+		if err := mergo.Merge(defaultConfig, &config); err != nil {
 			return config
 		}
 	}
@@ -51,7 +55,7 @@ func New() Config {
 		&config,
 	)
 	if err == nil {
-		if err := mergo.Merge(&config, defaultConfig); err != nil {
+		if err := mergo.Merge(defaultConfig, &config); err != nil {
 			return config
 		}
 	}
@@ -61,14 +65,14 @@ func New() Config {
 		&config,
 	)
 	if err == nil {
-		if err := mergo.Merge(&config, defaultConfig); err != nil {
+		if err := mergo.Merge(defaultConfig, &config); err != nil {
 			return config
 		}
 	}
 
 	_, err = toml.DecodeFile(os.Getenv("CB_CONFIG_PATH"), &config)
 	if err == nil {
-		if err := mergo.Merge(&config, defaultConfig); err != nil {
+		if err := mergo.Merge(defaultConfig, &config); err != nil {
 			return config
 		}
 	}

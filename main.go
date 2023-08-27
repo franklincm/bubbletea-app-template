@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"math"
 	"os"
@@ -85,6 +85,57 @@ func New() Model {
 		table.WithColumns(cityColumns),
 		table.WithRows(cityRows),
 		table.WithFocused(true),
+		table.WithStyles(table.Styles{
+			Selected: lipgloss.
+				NewStyle().
+				Bold(true).
+				Background(lipgloss.Color("240")).
+				Foreground(lipgloss.Color("212")),
+			Header: lipgloss.
+				NewStyle().
+				BorderStyle(lipgloss.NormalBorder()).
+				BorderForeground(lipgloss.Color("240")).
+				BorderBottom(true).
+				Bold(false),
+
+			Cell: lipgloss.
+				NewStyle().
+				Padding(0, 0),
+		}),
+		table.WithKeyMap(table.KeyMap{
+			LineUp: key.NewBinding(
+				key.WithKeys(conf.Keys["global"]["up"]),
+				key.WithHelp(fmt.Sprintf("↑/%s", conf.Keys["global"]["up"]), "up"),
+			),
+			LineDown: key.NewBinding(
+				key.WithKeys(conf.Keys["global"]["down"]),
+				key.WithHelp(fmt.Sprintf("↓/%s", conf.Keys["global"]["down"]), "down"),
+			),
+			PageUp: key.NewBinding(
+				key.WithKeys(conf.Keys["global"]["pageUp"]),
+				key.WithHelp(fmt.Sprintf("%s", conf.Keys["global"]["pageUp"]), "pageUp"),
+			),
+			PageDown: key.NewBinding(
+				key.WithKeys(conf.Keys["global"]["pageDown"]),
+				key.WithHelp(fmt.Sprintf("%s", conf.Keys["global"]["pageDown"]), "pageDown"),
+			),
+			HalfPageUp: key.NewBinding(
+				key.WithKeys(conf.Keys["global"]["halfPageUp"]),
+				key.WithHelp(fmt.Sprintf("%s", conf.Keys["global"]["halfPageUp"]), "halfPageUp"),
+			),
+			HalfPageDown: key.NewBinding(
+				key.WithKeys(conf.Keys["global"]["halfPageDown"]),
+				key.WithHelp(fmt.Sprintf("%s", conf.Keys["global"]["halfPageDown"]), "halfPageDown"),
+			),
+			GotoTop: key.NewBinding(
+				key.WithKeys("home", "g"),
+				key.WithHelp("g/home", "go to start"),
+			),
+			GotoBottom: key.NewBinding(
+				key.WithKeys("end", "G"),
+				key.WithHelp("G/end", "go to end"),
+			),
+		}),
 	)
 
 	headings := []string{
@@ -263,27 +314,27 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.frames[body], cmd = m.frames[body].Update(msg)
 			return m, cmd
 
+		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["halfPageUp"]))) && !m.showprompt {
+			m.frames[body], cmd = m.frames[body].Update(msg)
+			return m, cmd
+
+		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["halfPageDown"]))) && !m.showprompt {
+			m.frames[body], cmd = m.frames[body].Update(msg)
+			return m, cmd
+
+		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["pageDown"]))) && !m.showprompt {
+			m.frames[body], cmd = m.frames[body].Update(msg)
+			return m, cmd
+
+		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["pageUp"]))) && !m.showprompt {
+			m.frames[body], cmd = m.frames[body].Update(msg)
+			return m, cmd
+
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys("g"))) && !m.showprompt {
 			m.frames[body], cmd = m.frames[body].Update(msg)
 			return m, cmd
 
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys("G"))) && !m.showprompt {
-			m.frames[body], cmd = m.frames[body].Update(msg)
-			return m, cmd
-
-		} else if key.Matches(msg, key.NewBinding(key.WithKeys("ctrl+u"))) && !m.showprompt {
-			m.frames[body], cmd = m.frames[body].Update(msg)
-			return m, cmd
-
-		} else if key.Matches(msg, key.NewBinding(key.WithKeys("ctrl+d"))) && !m.showprompt {
-			m.frames[body], cmd = m.frames[body].Update(msg)
-			return m, cmd
-
-		} else if key.Matches(msg, key.NewBinding(key.WithKeys(" "))) && !m.showprompt {
-			m.frames[body], cmd = m.frames[body].Update(msg)
-			return m, cmd
-
-		} else if key.Matches(msg, key.NewBinding(key.WithKeys("b"))) && !m.showprompt {
 			m.frames[body], cmd = m.frames[body].Update(msg)
 			return m, cmd
 
@@ -419,7 +470,7 @@ func main() {
 		}
 		defer f.Close()
 	} else {
-		log.SetOutput(ioutil.Discard)
+		log.SetOutput(io.Discard)
 	}
 
 	log.Printf("\n\n\n\n")
