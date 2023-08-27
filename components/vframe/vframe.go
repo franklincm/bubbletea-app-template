@@ -67,7 +67,9 @@ func (m *Model) View() string {
 		for i := range m.content {
 			if i < len(m.content)-1 {
 				strs = append(strs, lipgloss.PlaceHorizontal(m.width/len(m.content), lipgloss.Left, m.content[i].View()))
-			} else if i == len(m.content)-1 {
+			} else if i == len(m.content)-1 && len(m.content) == 1 {
+				strs = append(strs, lipgloss.PlaceHorizontal(0, lipgloss.Center, m.content[i].View()))
+			} else if i == len(m.content)-1 && len(m.content) != 1 {
 				strs = append(strs, lipgloss.PlaceHorizontal(m.width/len(m.content), lipgloss.Right, m.content[i].View()))
 			}
 		}
