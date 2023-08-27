@@ -5,6 +5,13 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+type kind int
+
+const (
+	Horizontal kind = iota
+	Vertical
+)
+
 var style = lipgloss.NewStyle().
 	Align(lipgloss.Center).
 	Margin(0).
@@ -15,6 +22,7 @@ type Model struct {
 	width   int
 	height  int
 	content []tea.Model
+	kind    kind
 }
 
 func New() *Model {
@@ -54,16 +62,32 @@ func (m Model) Update(msg tea.Msg) (*Model, tea.Cmd) {
 
 func (m *Model) View() string {
 	var strs []string
-	for i := range m.content {
-		strs = append(strs, m.content[i].View())
-	}
 
-	return m.style.
-		Width(m.width).
-		Height(m.height).
-		Render(
-			lipgloss.JoinVertical(m.style.GetAlign(), strs...),
-		)
+	if m.kind == Horizontal {
+		for i := range m.content {
+			if i < len(m.content)-1 {
+				strs = append(strs, lipgloss.PlaceHorizontal(m.width/len(m.content), lipgloss.Left, m.content[i].View()))
+			} else if i == len(m.content)-1 {
+				strs = append(strs, lipgloss.PlaceHorizontal(m.width/len(m.content), lipgloss.Right, m.content[i].View()))
+			}
+		}
+		return m.style.
+			Width(m.width).
+			Height(m.height).
+			Render(
+				lipgloss.JoinHorizontal(m.style.GetAlign(), strs...),
+			)
+	} else {
+		for i := range m.content {
+			strs = append(strs, m.content[i].View())
+		}
+		return m.style.
+			Width(m.width).
+			Height(m.height).
+			Render(
+				lipgloss.JoinVertical(m.style.GetAlign(), strs...),
+			)
+	}
 }
 
 func (m Model) Append(content tea.Model) *Model {
@@ -87,4 +111,9 @@ func (m Model) Style(style lipgloss.Style) *Model {
 
 func (m Model) GetStyle() lipgloss.Style {
 	return m.style
+}
+
+func (m Model) Kind(t kind) *Model {
+	m.kind = t
+	return &m
 }

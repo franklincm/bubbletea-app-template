@@ -27,6 +27,7 @@ type frameId int
 
 const (
 	header frameId = iota
+	nav
 	body
 	footer
 )
@@ -42,7 +43,8 @@ var (
 )
 
 var frameHeights = map[frameId]int{
-	header: 9,
+	header: 8,
+	nav:    2,
 	footer: 2,
 }
 
@@ -61,6 +63,8 @@ type Model struct {
 	showprompt             bool
 
 	headerModel tea.Model
+	blank       tea.Model
+	info        tea.Model
 	footerModel tea.Model
 	prompt      tea.Model
 	tabs        tea.Model
@@ -152,9 +156,17 @@ func New() Model {
 	tabs = tabs.BlurredStyle(styles.tabBlurredStyle)
 	tabs = tabs.SetFocused(activeTab)
 
+	infoText := `
+app template
+version: 0.0.1
+theme: gruvbox
+`
+
 	m := Model{
 		headerModel:  text.New().Content(logo),
 		footerModel:  text.New().Content("footer"),
+		info:         text.New().Content(infoText),
+		blank:        text.New().Content(""),
 		prompt:       prompt,
 		tabs:         tabs,
 		models:       models,
@@ -164,10 +176,18 @@ func New() Model {
 	frames := map[frameId]*vframe.Model{
 		header: vframe.
 			New().
+			Kind(vframe.Horizontal).
 			Style(styles.headerStyle).
 			Content(
 				[]tea.Model{
+					m.info,
 					m.headerModel,
+				},
+			),
+		nav: vframe.
+			New().
+			Content(
+				[]tea.Model{
 					m.tabs,
 				},
 			),
@@ -181,7 +201,10 @@ func New() Model {
 			New().
 			Style(styles.footerStyle).
 			Content(
-				[]tea.Model{m.footerModel},
+				[]tea.Model{
+					m.footerModel,
+					m.blank,
+				},
 			),
 	}
 
@@ -219,6 +242,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.frames[header], cmd = m.frames[header].Update(tea.WindowSizeMsg{
 			Width:  msg.Width,
 			Height: frameHeights[header],
+		})
+		cmds = append(cmds, cmd)
+
+		// update nav
+		m.frames[nav], cmd = m.frames[nav].Update(tea.WindowSizeMsg{
+			Width:  msg.Width,
+			Height: frameHeights[nav],
 		})
 		cmds = append(cmds, cmd)
 
@@ -389,11 +419,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	if m.showprompt {
 		m.frames[footer] = m.frames[footer].Content(
-			[]tea.Model{m.prompt},
+			[]tea.Model{
+				m.prompt,
+				m.blank,
+			},
 		)
 	} else {
 		m.frames[footer] = m.frames[footer].Content(
-			[]tea.Model{m.footerModel},
+			[]tea.Model{
+				m.footerModel,
+				m.blank,
+			},
 		)
 	}
 
@@ -409,6 +445,7 @@ func (m Model) View() string {
 		lipgloss.JoinVertical(
 			lipgloss.Center,
 			m.frames[header].View(),
+			m.frames[nav].View(),
 			m.frames[body].View(),
 			m.frames[footer].View(),
 		),
@@ -418,7 +455,13 @@ func (m Model) View() string {
 func (m Model) SetContent(tm tea.Model) {
 	m.frames[header] = m.frames[header].Content(
 		[]tea.Model{
+			m.info,
 			m.headerModel,
+		},
+	)
+
+	m.frames[nav] = m.frames[nav].Content(
+		[]tea.Model{
 			m.tabs,
 		},
 	)

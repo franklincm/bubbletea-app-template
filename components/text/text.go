@@ -2,11 +2,9 @@ package text
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	// "github.com/charmbracelet/lipgloss"
 )
 
 type Model struct {
-	// style   lipgloss.Style
 	width   int
 	height  int
 	content string
@@ -14,7 +12,6 @@ type Model struct {
 
 func New() Model {
 	return Model{
-		// style:   style,
 		content: "",
 	}
 }
