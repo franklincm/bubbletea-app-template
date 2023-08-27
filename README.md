@@ -22,6 +22,26 @@ left = "h"
 down = "j"
 up = "k"
 right = "l"
+
+halfPageDown = "ctrl+d"
+halfPageUp = "ctrl+u"
+
+pageDown = " "
+pageUp = "b"
+
+describe = "d"
+edit = "e"
+refresh = "r"
+
+[styles]
+borderForeground = "#458588"
+tabBlurredBackground = "#282828"
+tabBlurredForeground = "#928374"
+tabFocusedBackground = "#98971a"
+tabFocusedForeground = "#ebdbb2"
+tableHeaderForeground = "#3c3836"
+tableSelectedBackground = "#3c3836"
+tableSelectedForeground = "#d3869b"
 ```
 
 ## Debug
