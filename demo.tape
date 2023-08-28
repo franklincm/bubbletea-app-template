@@ -9,10 +9,10 @@ Set WindowBar Colorful
 
 Set Shell "bash"
 Set FontSize 14
-Set Width 1100
+Set Width 1000
 Set Height 600
 
-Type "./dist/template -c table" Sleep 1000ms  Enter Sleep 1000ms
+Type "./dist/template" Sleep 1000ms Enter Sleep 1000ms
 Type "l" Sleep 1000ms
 Type "l" Sleep 1000ms
 Type "l" Sleep 1000ms
