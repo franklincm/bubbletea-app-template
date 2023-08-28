@@ -173,6 +173,8 @@ theme: gruvbox
 		tabPosLookup: tabPosLookup,
 	}
 
+	m.setActiveTab(m.tabPosLookup["table"])
+
 	frames := map[frameId]*vframe.Model{
 		header: vframe.
 			New().
@@ -195,7 +197,7 @@ theme: gruvbox
 			New().
 			Style(styles.bodyStyle).
 			Content(
-				[]tea.Model{m.models["three"]},
+				[]tea.Model{m.models["table"]},
 			),
 		footer: vframe.
 			New().
