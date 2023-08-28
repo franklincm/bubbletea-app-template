@@ -10,6 +10,7 @@ type Styles struct {
 	footerStyle     lipgloss.Style
 	fullscreenStyle lipgloss.Style
 	headerStyle     lipgloss.Style
+	navStyle        lipgloss.Style
 	tabBlurredStyle lipgloss.Style
 	tabFocusedStyle lipgloss.Style
 	tableCell       lipgloss.Style
@@ -45,6 +46,11 @@ func NewStyle(conf config.Config) Styles {
 			Margin(0).
 			Padding(0).
 			Align(lipgloss.Right),
+
+		navStyle: lipgloss.NewStyle().
+			BorderForeground(lipgloss.Color(conf.Styles["borderForeground"])).
+			BorderTop(true).
+			BorderStyle(lipgloss.NormalBorder()),
 
 		tabBlurredStyle: lipgloss.NewStyle().
 			MarginRight(1).

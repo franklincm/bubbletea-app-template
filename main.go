@@ -44,7 +44,7 @@ var (
 
 var frameHeights = map[frameId]int{
 	header: 8,
-	nav:    2,
+	nav:    1,
 	footer: 2,
 }
 
@@ -192,7 +192,7 @@ theme: gruvbox
 				[]tea.Model{
 					m.tabs,
 				},
-			),
+			).Style(styles.navStyle),
 		body: vframe.
 			New().
 			Style(styles.bodyStyle).
