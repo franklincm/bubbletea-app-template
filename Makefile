@@ -18,7 +18,7 @@ vet: fmt
 .PHONY:vet
 
 build: vet
-	go build -o dist/template *.go
+	go build -mod vendor -o dist/template *.go
 .PHONY:build
 
 test:
