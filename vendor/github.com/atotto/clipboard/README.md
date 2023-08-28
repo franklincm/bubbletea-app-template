@@ -17,7 +17,7 @@ Platforms:
 * Linux, Unix (requires 'xclip' or 'xsel' command to be installed)
 
 
-Document:
+Document: 
 
 * http://godoc.org/github.com/atotto/clipboard
 
@@ -43,3 +43,6 @@ copy shell command:
     $ go get github.com/atotto/clipboard/cmd/gocopy
     $ # example:
     $ cat document.txt | gocopy
+
+
+
