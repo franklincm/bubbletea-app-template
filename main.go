@@ -235,7 +235,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	)
 
 	switch msg := msg.(type) {
-
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
@@ -280,9 +279,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg == "quit" || msg == "q" {
 			m.quitting = true
 			return m, tea.Quit
-
 		} else if msg == "dnd" {
-
 			dataTable.SetRows(charRows)
 			dataTable.SetColumns(charColumns)
 			m.models["table"] = dataTable
@@ -290,7 +287,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if activeTab == 0 {
 				m.SetContent(m.models["table"])
 			}
-
 		} else if msg == "city" {
 			dataTable.SetColumns(cityColumns)
 			dataTable.SetRows(cityRows)
@@ -299,7 +295,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if activeTab == 0 {
 				m.SetContent(m.models["table"])
 			}
-
 		} else {
 			model, ok := m.models[string(msg)]
 			if ok {
@@ -316,12 +311,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if key.Matches(msg, quitKeys) && !m.showprompt {
 			m.quitting = true
 			return m, tea.Quit
-
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["left"]))) && !m.showprompt {
 			m.tabPrev()
 			m.SetContent(m.models[m.tabs.(tabs.Model).GetHeadings()[activeTab]])
 			return m, cmd
-
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["right"]))) && !m.showprompt {
 			m.tabNext()
 			m.SetContent(m.models[m.tabs.(tabs.Model).GetHeadings()[activeTab]])
@@ -331,38 +324,30 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["down"]))) && !m.showprompt {
 			m.frames[body], cmd = m.frames[body].Update(msg)
 			return m, cmd
-
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["up"]))) && !m.showprompt {
 			m.frames[body], cmd = m.frames[body].Update(msg)
 			return m, cmd
-
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["halfPageUp"]))) && !m.showprompt {
 			m.frames[body], cmd = m.frames[body].Update(msg)
 			return m, cmd
-
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["halfPageDown"]))) && !m.showprompt {
 			m.frames[body], cmd = m.frames[body].Update(msg)
 			return m, cmd
-
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["pageDown"]))) && !m.showprompt {
 			m.frames[body], cmd = m.frames[body].Update(msg)
 			return m, cmd
-
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["pageUp"]))) && !m.showprompt {
 			m.frames[body], cmd = m.frames[body].Update(msg)
 			return m, cmd
-
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys("g"))) && !m.showprompt {
 			m.frames[body], cmd = m.frames[body].Update(msg)
 			return m, cmd
-
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys("G"))) && !m.showprompt {
 			m.frames[body], cmd = m.frames[body].Update(msg)
 			return m, cmd
 
 			// tab suggestions
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys("tab"))) && m.showprompt {
-
 			headings := m.tabs.(tabs.Model).GetHeadings()
 
 			if len(m.inputHint) == 0 {
@@ -387,7 +372,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.inputSuggestionCounter = (m.inputSuggestionCounter + 1) % len(m.suggestions)
 				log.Println("suggestion: ", m.prompt.(commandprompt.Model).TextInput.Value())
 			}
-
 		} else {
 			m.suggestions = nil
 			m.inputSuggestionCounter = 0

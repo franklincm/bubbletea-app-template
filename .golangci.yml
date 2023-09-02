@@ -1,8 +1,10 @@
 linters:
   enable:
-    - thelper
     - gofumpt
+    - govet
+    - thelper
     - tparallel
     - unconvert
     - unparam
     - wastedassign
+    - whitespace

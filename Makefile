@@ -2,28 +2,24 @@
 .DEFAULT_GOAL := build
 
 precommit:
-	pre-commit install
+	pre-commit autoupdate && pre-commit install && pre-commit run -a
 .PHONY:precommit
 
-fmt: precommit
-	gofmt -w -s .
-.PHONY:fmt
-
-lint: fmt
-	golint .
+lint:
+	golangci-lint run
 .PHONY:lint
 
-vet: fmt
-	go vet ./...
-.PHONY:vet
-
-build: vet
-	go build -mod vendor -o dist/template *.go
-.PHONY:build
+lint-fix:
+	golangci-lint run --fix
+.PHONY:lint
 
 test:
 	go test
 .PHONY:test
+
+build:
+	go build -mod vendor -o dist/template *.go
+.PHONY:build
 
 vhs: build
 	vhs demo.tape
