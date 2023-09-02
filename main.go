@@ -14,10 +14,10 @@ import (
 	lipgloss "github.com/charmbracelet/lipgloss"
 	commandprompt "github.com/franklincm/bubbles/commandPrompt"
 	tabs "github.com/franklincm/bubbles/tabs"
+	frame "github.com/franklincm/bubbletea-template/components/frame"
 	spinner "github.com/franklincm/bubbletea-template/components/spinner"
 	table "github.com/franklincm/bubbletea-template/components/table"
 	text "github.com/franklincm/bubbletea-template/components/text"
-	vframe "github.com/franklincm/bubbletea-template/components/vframe"
 	config "github.com/franklincm/bubbletea-template/config"
 )
 
@@ -69,7 +69,7 @@ type Model struct {
 	prompt      tea.Model
 	tabs        tea.Model
 
-	frames       map[frameId]*vframe.Model
+	frames       map[frameId]*frame.Model
 	models       map[string]tea.Model
 	tabPosLookup map[string]int
 }
@@ -175,10 +175,10 @@ theme: gruvbox
 
 	m.setActiveTab(m.tabPosLookup["table"])
 
-	frames := map[frameId]*vframe.Model{
-		header: vframe.
+	frames := map[frameId]*frame.Model{
+		header: frame.
 			New().
-			Kind(vframe.Horizontal).
+			Kind(frame.Horizontal).
 			Style(styles.headerStyle).
 			Content(
 				[]tea.Model{
@@ -186,20 +186,20 @@ theme: gruvbox
 					m.headerModel,
 				},
 			),
-		nav: vframe.
+		nav: frame.
 			New().
 			Content(
 				[]tea.Model{
 					m.tabs,
 				},
 			).Style(styles.navStyle),
-		body: vframe.
+		body: frame.
 			New().
 			Style(styles.bodyStyle).
 			Content(
 				[]tea.Model{m.models["table"]},
 			),
-		footer: vframe.
+		footer: frame.
 			New().
 			Style(styles.footerStyle).
 			Content(
