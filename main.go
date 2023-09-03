@@ -72,7 +72,7 @@ func New() Model {
 	prompt := commandprompt.New(":")
 	prompt.InputShow = key.NewBinding(key.WithKeys(":"))
 
-	Nav := NewNav()
+	Nav := NewLayout()
 
 	tabs := tabs.New(Nav.headings)
 	tabs = tabs.FocusedStyle(styles.tabFocusedStyle)

@@ -14,7 +14,7 @@ type Layout struct {
 	tabNameToIndex map[string]int
 }
 
-func NewNav() Layout {
+func NewLayout() Layout {
 	headings := []string{
 		"table",
 		"two",
