@@ -65,7 +65,7 @@ type Model struct {
 
 	frames map[frameId]*frame.Model
 
-	nav Nav
+	layout Layout
 }
 
 func New() Model {
@@ -85,10 +85,10 @@ func New() Model {
 		blank:       NewBlank(),
 		prompt:      prompt,
 		tabs:        tabs,
-		nav:         Nav,
+		layout:      Nav,
 	}
 
-	m.setActiveTab(m.nav.tabNameToIndex["table"])
+	m.setActiveTab(m.layout.tabNameToIndex["table"])
 
 	frames := map[frameId]*frame.Model{
 		header: NewHeader(),
@@ -103,7 +103,7 @@ func New() Model {
 			New().
 			Style(styles.bodyStyle).
 			Content(
-				[]tea.Model{m.nav.models["table"]},
+				[]tea.Model{m.layout.models["table"]},
 			),
 		footer: NewFooter(),
 	}
@@ -119,9 +119,9 @@ func (m Model) Init() tea.Cmd {
 
 	return tea.Batch(
 		tea.EnterAltScreen,
-		m.nav.models["two"].Init(),
-		m.nav.models["three"].Init(),
-		m.nav.models["four"].Init(),
+		m.layout.models["two"].Init(),
+		m.layout.models["three"].Init(),
+		m.layout.models["four"].Init(),
 		m.prompt.Init(),
 	)
 }
@@ -180,23 +180,23 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else if msg == "dnd" {
 			dataTable.SetRows(charRows)
 			dataTable.SetColumns(charColumns)
-			m.nav.models["table"] = dataTable
+			m.layout.models["table"] = dataTable
 
 			if activeTab == 0 {
-				m.SetContent(m.nav.models["table"])
+				m.SetContent(m.layout.models["table"])
 			}
 		} else if msg == "city" {
 			dataTable.SetColumns(cityColumns)
 			dataTable.SetRows(cityRows)
-			m.nav.models["table"] = dataTable
+			m.layout.models["table"] = dataTable
 
 			if activeTab == 0 {
-				m.SetContent(m.nav.models["table"])
+				m.SetContent(m.layout.models["table"])
 			}
 		} else {
-			model, ok := m.nav.models[string(msg)]
+			model, ok := m.layout.models[string(msg)]
 			if ok {
-				m.setActiveTab(m.nav.tabNameToIndex[string(msg)])
+				m.setActiveTab(m.layout.tabNameToIndex[string(msg)])
 				m.SetContent(model)
 			}
 		}
@@ -211,11 +211,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["left"]))) && !m.showprompt {
 			m.tabPrev()
-			m.SetContent(m.nav.models[m.tabs.(tabs.Model).GetHeadings()[activeTab]])
+			m.SetContent(m.layout.models[m.tabs.(tabs.Model).GetHeadings()[activeTab]])
 			return m, cmd
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["right"]))) && !m.showprompt {
 			m.tabNext()
-			m.SetContent(m.nav.models[m.tabs.(tabs.Model).GetHeadings()[activeTab]])
+			m.SetContent(m.layout.models[m.tabs.(tabs.Model).GetHeadings()[activeTab]])
 			return m, cmd
 
 			// table key bindings
@@ -296,8 +296,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	cmds = append(cmds, cmd)
 
 	// update main models
-	for model := range m.nav.models {
-		m.nav.models[model], cmd = m.nav.models[model].Update(msg)
+	for model := range m.layout.models {
+		m.layout.models[model], cmd = m.layout.models[model].Update(msg)
 		cmds = append(cmds, cmd)
 	}
 

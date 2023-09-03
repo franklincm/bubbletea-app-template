@@ -11,13 +11,13 @@ import (
 
 var dataTable table.Model
 
-type Nav struct {
+type Layout struct {
 	models         map[string]tea.Model
 	headings       []string
 	tabNameToIndex map[string]int
 }
 
-func NewNav() Nav {
+func NewNav() Layout {
 	headings := []string{
 		"table",
 		"two",
@@ -79,7 +79,7 @@ func NewNav() Nav {
 	s3 := spinner.New()
 	s3.Spinner = spinner.Pulse
 
-	return Nav{
+	return Layout{
 		headings: headings,
 
 		models: map[string]tea.Model{
