@@ -63,8 +63,7 @@ type Model struct {
 	prompt      tea.Model
 	tabs        tea.Model
 
-	frames       map[frameId]*frame.Model
-	tabPosLookup map[string]int
+	frames map[frameId]*frame.Model
 
 	nav Nav
 }
@@ -75,27 +74,21 @@ func New() Model {
 
 	Nav := NewNav()
 
-	tabPosLookup := map[string]int{}
-	for i, label := range Nav.headings {
-		tabPosLookup[label] = i
-	}
-
 	tabs := tabs.New(Nav.headings)
 	tabs = tabs.FocusedStyle(styles.tabFocusedStyle)
 	tabs = tabs.BlurredStyle(styles.tabBlurredStyle)
 	tabs = tabs.SetFocused(activeTab)
 
 	m := Model{
-		headerModel:  NewHeaderModel(),
-		footerModel:  NewFooterModel(),
-		blank:        NewBlank(),
-		prompt:       prompt,
-		tabs:         tabs,
-		tabPosLookup: tabPosLookup,
-		nav:          Nav,
+		headerModel: NewHeaderModel(),
+		footerModel: NewFooterModel(),
+		blank:       NewBlank(),
+		prompt:      prompt,
+		tabs:        tabs,
+		nav:         Nav,
 	}
 
-	m.setActiveTab(m.tabPosLookup["table"])
+	m.setActiveTab(m.nav.tabNameToIndex["table"])
 
 	frames := map[frameId]*frame.Model{
 		header: NewHeader(),
@@ -203,7 +196,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			model, ok := m.nav.models[string(msg)]
 			if ok {
-				m.setActiveTab(m.tabPosLookup[string(msg)])
+				m.setActiveTab(m.nav.tabNameToIndex[string(msg)])
 				m.SetContent(model)
 			}
 		}

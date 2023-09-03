@@ -12,8 +12,9 @@ import (
 var dataTable table.Model
 
 type Nav struct {
-	models   map[string]tea.Model
-	headings []string
+	models         map[string]tea.Model
+	headings       []string
+	tabNameToIndex map[string]int
 }
 
 func NewNav() Nav {
@@ -86,6 +87,13 @@ func NewNav() Nav {
 			headings[1]: s1,
 			headings[2]: s2,
 			headings[3]: s3,
+		},
+
+		tabNameToIndex: map[string]int{
+			"table": 0,
+			"two":   1,
+			"three": 2,
+			"four":  3,
 		},
 	}
 }
