@@ -356,12 +356,14 @@ func (m *Model) setActiveTab(index int) {
 
 func (m *Model) tabNext() {
 	numHeadings := len(m.tabs.(tabs.Model).GetHeadings())
-	activeTab = int(math.Min(float64(activeTab+1), float64(numHeadings-1)))
+	tabNext := int(math.Min(float64(activeTab+1), float64(numHeadings-1)))
+	activeTab = tabNext
 	m.tabs = m.tabs.(tabs.Model).SetFocused(activeTab)
 }
 
 func (m *Model) tabPrev() {
-	activeTab = int(math.Max(float64(activeTab-1), 0))
+	tabPrev := int(math.Max(float64(activeTab-1), 0))
+	activeTab = tabPrev
 	m.tabs = m.tabs.(tabs.Model).SetFocused(activeTab)
 }
 
