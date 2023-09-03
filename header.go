@@ -16,7 +16,7 @@ theme: gruvbox
 	return text.New().Content(infoText)
 }
 
-func NewHeaderModel() tea.Model {
+func NewLogo() tea.Model {
 	return text.New().Content(logo)
 }
 
@@ -28,7 +28,7 @@ func NewHeader() *frame.Model {
 		Content(
 			[]tea.Model{
 				NewInfoModel(),
-				NewHeaderModel(),
+				NewLogo(),
 			},
 		)
 }

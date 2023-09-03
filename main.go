@@ -57,11 +57,9 @@ type Model struct {
 	suggestions            []string
 	showprompt             bool
 
-	headerModel tea.Model
-	blank       tea.Model
-	footerModel tea.Model
-	prompt      tea.Model
-	tabs        tea.Model
+	footerText tea.Model
+	prompt     tea.Model
+	tabs       tea.Model
 
 	frames map[frameId]*frame.Model
 
@@ -79,13 +77,13 @@ func New() Model {
 	tabs = tabs.BlurredStyle(styles.tabBlurredStyle)
 	tabs = tabs.SetFocused(activeTab)
 
+	footerFrame := NewFooter()
+
 	m := Model{
-		headerModel: NewHeaderModel(),
-		footerModel: NewFooterModel(),
-		blank:       NewBlank(),
-		prompt:      prompt,
-		tabs:        tabs,
-		layout:      Nav,
+		footerText: footerFrame.GetContent()[0],
+		prompt:     prompt,
+		tabs:       tabs,
+		layout:     Nav,
 	}
 
 	m.setActiveTab(m.layout.tabNameToIndex["table"])
@@ -105,7 +103,7 @@ func New() Model {
 			Content(
 				[]tea.Model{m.layout.models["table"]},
 			),
-		footer: NewFooter(),
+		footer: footerFrame,
 	}
 
 	m.frames = frames
@@ -306,7 +304,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			log.Println(err)
 		}
 	} else {
-		if err := m.frames[footer].SetContentModel(0, m.footerModel); err != nil {
+		if err := m.frames[footer].SetContentModel(0, m.footerText); err != nil {
 			log.Println(err)
 		}
 	}

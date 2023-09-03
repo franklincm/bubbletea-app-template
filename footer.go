@@ -6,7 +6,7 @@ import (
 	text "github.com/franklincm/bubbletea-template/components/text"
 )
 
-func NewFooterModel() tea.Model {
+func NewFooterText() tea.Model {
 	return text.New().Content("footer")
 }
 
@@ -20,7 +20,7 @@ func NewFooter() *frame.Model {
 		Style(styles.footerStyle).
 		Content(
 			[]tea.Model{
-				NewFooterModel(),
+				NewFooterText(),
 				NewBlank(),
 			},
 		)
