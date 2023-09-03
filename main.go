@@ -72,17 +72,12 @@ func New() Model {
 
 	layout := NewLayout()
 
-	tabs := tabs.New(layout.headings)
-	tabs = tabs.FocusedStyle(styles.tabFocusedStyle)
-	tabs = tabs.BlurredStyle(styles.tabBlurredStyle)
-	tabs = tabs.SetFocused(activeTab)
-
 	footerFrame := NewFooter()
 
 	m := Model{
 		footerText: footerFrame.GetContent()[0],
 		prompt:     prompt,
-		tabs:       tabs,
+		tabs:       layout.tabs,
 		layout:     layout,
 	}
 
@@ -94,7 +89,7 @@ func New() Model {
 			New().
 			Content(
 				[]tea.Model{
-					m.tabs,
+					m.layout.tabs,
 				},
 			).Style(styles.navStyle),
 		body: frame.
@@ -209,11 +204,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["left"]))) && !m.showprompt {
 			m.tabPrev()
-			m.SetContent(m.layout.models[m.tabs.(tabs.Model).GetHeadings()[activeTab]])
+			m.SetContent(m.layout.models[m.layout.tabs.(tabs.Model).GetHeadings()[activeTab]])
 			return m, cmd
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["right"]))) && !m.showprompt {
 			m.tabNext()
-			m.SetContent(m.layout.models[m.tabs.(tabs.Model).GetHeadings()[activeTab]])
+			m.SetContent(m.layout.models[m.layout.tabs.(tabs.Model).GetHeadings()[activeTab]])
 			return m, cmd
 
 			// table key bindings
@@ -244,7 +239,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			// tab suggestions
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys("tab"))) && m.showprompt {
-			headings := m.tabs.(tabs.Model).GetHeadings()
+			headings := m.layout.tabs.(tabs.Model).GetHeadings()
 
 			if len(m.inputHint) == 0 {
 				m.inputHint = m.prompt.(commandprompt.Model).TextInput.Value()
@@ -290,7 +285,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	m.tabs, cmd = m.tabs.Update(msg)
+	m.layout.tabs, cmd = m.layout.tabs.Update(msg)
 	cmds = append(cmds, cmd)
 
 	// update main models
@@ -331,7 +326,7 @@ func (m Model) View() string {
 func (m Model) SetContent(tm tea.Model) {
 	m.frames[nav] = m.frames[nav].Content(
 		[]tea.Model{
-			m.tabs,
+			m.layout.tabs,
 		},
 	)
 
@@ -346,23 +341,23 @@ func (m Model) SetContent(tm tea.Model) {
 }
 
 func (m *Model) setActiveTab(index int) {
-	if index >= 0 && index <= len(m.tabs.(tabs.Model).GetHeadings()) {
+	if index >= 0 && index <= len(m.layout.tabs.(tabs.Model).GetHeadings()) {
 		activeTab = index
-		m.tabs = m.tabs.(tabs.Model).SetFocused(activeTab)
+		m.layout.tabs = m.layout.tabs.(tabs.Model).SetFocused(activeTab)
 	}
 }
 
 func (m *Model) tabNext() {
-	numHeadings := len(m.tabs.(tabs.Model).GetHeadings())
+	numHeadings := len(m.layout.tabs.(tabs.Model).GetHeadings())
 	tabNext := int(math.Min(float64(activeTab+1), float64(numHeadings-1)))
 	activeTab = tabNext
-	m.tabs = m.tabs.(tabs.Model).SetFocused(activeTab)
+	m.layout.tabs = m.layout.tabs.(tabs.Model).SetFocused(activeTab)
 }
 
 func (m *Model) tabPrev() {
 	tabPrev := int(math.Max(float64(activeTab-1), 0))
 	activeTab = tabPrev
-	m.tabs = m.tabs.(tabs.Model).SetFocused(activeTab)
+	m.layout.tabs = m.layout.tabs.(tabs.Model).SetFocused(activeTab)
 }
 
 func main() {

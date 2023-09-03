@@ -2,6 +2,7 @@ package main
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
+	tabs "github.com/franklincm/bubbles/tabs"
 	spinner "github.com/franklincm/bubbletea-template/components/spinner"
 	table "github.com/franklincm/bubbletea-template/components/table"
 )
@@ -12,6 +13,16 @@ type Layout struct {
 	models         map[string]tea.Model
 	headings       []string
 	tabNameToIndex map[string]int
+	tabs           tea.Model
+}
+
+func initTabs(headings []string) tea.Model {
+	tabs := tabs.New(headings)
+	tabs = tabs.FocusedStyle(styles.tabFocusedStyle)
+	tabs = tabs.BlurredStyle(styles.tabBlurredStyle)
+	tabs = tabs.SetFocused(activeTab)
+
+	return tabs
 }
 
 func NewLayout() Layout {
@@ -21,6 +32,8 @@ func NewLayout() Layout {
 		"three",
 		"four",
 	}
+
+	tabs := initTabs(headings)
 
 	return Layout{
 		headings: headings,
@@ -38,5 +51,6 @@ func NewLayout() Layout {
 			headings[2]: 2,
 			headings[3]: 3,
 		},
+		tabs: tabs,
 	}
 }
