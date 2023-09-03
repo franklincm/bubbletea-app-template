@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"math"
 	"os"
 	"strings"
 
@@ -178,11 +177,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.quitting = true
 			return m, tea.Quit
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["left"]))) && !m.showprompt {
-			m.tabPrev()
+			m.layout.tabPrev()
 			m.SetContent(m.layout.models[m.layout.tabs.(tabs.Model).GetHeadings()[m.layout.activeTab]])
 			return m, cmd
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["right"]))) && !m.showprompt {
-			m.tabNext()
+			m.layout.tabNext()
 			m.SetContent(m.layout.models[m.layout.tabs.(tabs.Model).GetHeadings()[m.layout.activeTab]])
 			return m, cmd
 
@@ -320,19 +319,6 @@ func (m *Model) setActiveTab(index int) {
 		m.layout.activeTab = index
 		m.layout.tabs = m.layout.tabs.(tabs.Model).SetFocused(m.layout.activeTab)
 	}
-}
-
-func (m *Model) tabNext() {
-	numHeadings := len(m.layout.tabs.(tabs.Model).GetHeadings())
-	tabNext := int(math.Min(float64(m.layout.activeTab+1), float64(numHeadings-1)))
-	m.layout.activeTab = tabNext
-	m.layout.tabs = m.layout.tabs.(tabs.Model).SetFocused(m.layout.activeTab)
-}
-
-func (m *Model) tabPrev() {
-	tabPrev := int(math.Max(float64(m.layout.activeTab-1), 0))
-	m.layout.activeTab = tabPrev
-	m.layout.tabs = m.layout.tabs.(tabs.Model).SetFocused(m.layout.activeTab)
 }
 
 func main() {

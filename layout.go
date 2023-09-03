@@ -1,6 +1,8 @@
 package main
 
 import (
+	"math"
+
 	tea "github.com/charmbracelet/bubbletea"
 	tabs "github.com/franklincm/bubbles/tabs"
 	frame "github.com/franklincm/bubbletea-template/components/frame"
@@ -17,6 +19,19 @@ type Layout struct {
 	tabs           tea.Model
 	frames         map[frameId]*frame.Model
 	activeTab      int
+}
+
+func (l *Layout) tabNext() {
+	numHeadings := len(l.tabs.(tabs.Model).GetHeadings())
+	tabNext := int(math.Min(float64(l.activeTab+1), float64(numHeadings-1)))
+	l.activeTab = tabNext
+	l.tabs = l.tabs.(tabs.Model).SetFocused(l.activeTab)
+}
+
+func (l *Layout) tabPrev() {
+	tabPrev := int(math.Max(float64(l.activeTab-1), 0))
+	l.activeTab = tabPrev
+	l.tabs = l.tabs.(tabs.Model).SetFocused(l.activeTab)
 }
 
 func initTabs(headings []string, activeTab int) tea.Model {
