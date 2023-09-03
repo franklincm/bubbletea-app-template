@@ -21,26 +21,6 @@ type Layout struct {
 	activeTab      int
 }
 
-func (l *Layout) setActiveTab(index int) {
-	if index >= 0 && index <= len(l.tabs.(tabs.Model).GetHeadings()) {
-		l.activeTab = index
-		l.tabs = l.tabs.(tabs.Model).SetFocused(l.activeTab)
-	}
-}
-
-func (l *Layout) tabNext() {
-	numHeadings := len(l.tabs.(tabs.Model).GetHeadings())
-	tabNext := int(math.Min(float64(l.activeTab+1), float64(numHeadings-1)))
-	l.activeTab = tabNext
-	l.tabs = l.tabs.(tabs.Model).SetFocused(l.activeTab)
-}
-
-func (l *Layout) tabPrev() {
-	tabPrev := int(math.Max(float64(l.activeTab-1), 0))
-	l.activeTab = tabPrev
-	l.tabs = l.tabs.(tabs.Model).SetFocused(l.activeTab)
-}
-
 func initTabs(headings []string, activeTab int) tea.Model {
 	tabs := tabs.New(headings)
 	tabs = tabs.FocusedStyle(styles.tabFocusedStyle)
@@ -98,4 +78,41 @@ func NewLayout() Layout {
 			footer: NewFooter(),
 		},
 	}
+}
+
+func (l Layout) SetContent(tm tea.Model) {
+	l.frames[nav] = l.frames[nav].Content(
+		[]tea.Model{
+			l.tabs,
+		},
+	)
+
+	l.frames[body] = l.frames[body].Content(
+		[]tea.Model{tm},
+	)
+
+	l.frames[body], _ = l.frames[body].Update(tea.WindowSizeMsg{
+		Width:  styles.bodyStyle.GetWidth(),
+		Height: styles.bodyStyle.GetHeight(),
+	})
+}
+
+func (l *Layout) setActiveTab(index int) {
+	if index >= 0 && index <= len(l.tabs.(tabs.Model).GetHeadings()) {
+		l.activeTab = index
+		l.tabs = l.tabs.(tabs.Model).SetFocused(l.activeTab)
+	}
+}
+
+func (l *Layout) tabNext() {
+	numHeadings := len(l.tabs.(tabs.Model).GetHeadings())
+	tabNext := int(math.Min(float64(l.activeTab+1), float64(numHeadings-1)))
+	l.activeTab = tabNext
+	l.tabs = l.tabs.(tabs.Model).SetFocused(l.activeTab)
+}
+
+func (l *Layout) tabPrev() {
+	tabPrev := int(math.Max(float64(l.activeTab-1), 0))
+	l.activeTab = tabPrev
+	l.tabs = l.tabs.(tabs.Model).SetFocused(l.activeTab)
 }

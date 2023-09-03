@@ -150,7 +150,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.layout.models["table"] = dataTable
 
 			if m.layout.activeTab == 0 {
-				m.SetContent(m.layout.models["table"])
+				m.layout.SetContent(m.layout.models["table"])
 			}
 		} else if msg == "city" {
 			dataTable.SetColumns(cityColumns)
@@ -158,13 +158,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.layout.models["table"] = dataTable
 
 			if m.layout.activeTab == 0 {
-				m.SetContent(m.layout.models["table"])
+				m.layout.SetContent(m.layout.models["table"])
 			}
 		} else {
 			model, ok := m.layout.models[string(msg)]
 			if ok {
 				m.layout.setActiveTab(m.layout.tabNameToIndex[string(msg)])
-				m.SetContent(model)
+				m.layout.SetContent(model)
 			}
 		}
 
@@ -178,11 +178,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["left"]))) && !m.showprompt {
 			m.layout.tabPrev()
-			m.SetContent(m.layout.models[m.layout.tabs.(tabs.Model).GetHeadings()[m.layout.activeTab]])
+			m.layout.SetContent(m.layout.models[m.layout.tabs.(tabs.Model).GetHeadings()[m.layout.activeTab]])
 			return m, cmd
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["right"]))) && !m.showprompt {
 			m.layout.tabNext()
-			m.SetContent(m.layout.models[m.layout.tabs.(tabs.Model).GetHeadings()[m.layout.activeTab]])
+			m.layout.SetContent(m.layout.models[m.layout.tabs.(tabs.Model).GetHeadings()[m.layout.activeTab]])
 			return m, cmd
 
 			// table key bindings
@@ -295,23 +295,6 @@ func (m Model) View() string {
 			m.layout.frames[footer].View(),
 		),
 	)
-}
-
-func (m Model) SetContent(tm tea.Model) {
-	m.layout.frames[nav] = m.layout.frames[nav].Content(
-		[]tea.Model{
-			m.layout.tabs,
-		},
-	)
-
-	m.layout.frames[body] = m.layout.frames[body].Content(
-		[]tea.Model{tm},
-	)
-
-	m.layout.frames[body], _ = m.layout.frames[body].Update(tea.WindowSizeMsg{
-		Width:  styles.bodyStyle.GetWidth(),
-		Height: styles.bodyStyle.GetHeight(),
-	})
 }
 
 func main() {
