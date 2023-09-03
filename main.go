@@ -75,7 +75,7 @@ func New() Model {
 		layout:     layout,
 	}
 
-	m.setActiveTab(m.layout.tabNameToIndex["table"])
+	m.layout.setActiveTab(m.layout.tabNameToIndex["table"])
 
 	return m
 }
@@ -163,7 +163,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			model, ok := m.layout.models[string(msg)]
 			if ok {
-				m.setActiveTab(m.layout.tabNameToIndex[string(msg)])
+				m.layout.setActiveTab(m.layout.tabNameToIndex[string(msg)])
 				m.SetContent(model)
 			}
 		}
@@ -312,13 +312,6 @@ func (m Model) SetContent(tm tea.Model) {
 		Width:  styles.bodyStyle.GetWidth(),
 		Height: styles.bodyStyle.GetHeight(),
 	})
-}
-
-func (m *Model) setActiveTab(index int) {
-	if index >= 0 && index <= len(m.layout.tabs.(tabs.Model).GetHeadings()) {
-		m.layout.activeTab = index
-		m.layout.tabs = m.layout.tabs.(tabs.Model).SetFocused(m.layout.activeTab)
-	}
 }
 
 func main() {

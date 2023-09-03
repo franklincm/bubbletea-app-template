@@ -21,6 +21,13 @@ type Layout struct {
 	activeTab      int
 }
 
+func (l *Layout) setActiveTab(index int) {
+	if index >= 0 && index <= len(l.tabs.(tabs.Model).GetHeadings()) {
+		l.activeTab = index
+		l.tabs = l.tabs.(tabs.Model).SetFocused(l.activeTab)
+	}
+}
+
 func (l *Layout) tabNext() {
 	numHeadings := len(l.tabs.(tabs.Model).GetHeadings())
 	tabNext := int(math.Min(float64(l.activeTab+1), float64(numHeadings-1)))
