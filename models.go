@@ -22,25 +22,21 @@ func NewLayout() Layout {
 		"four",
 	}
 
-	s1 := spinner.New(spinner.WithSpinner(spinner.Dot))
-	s2 := spinner.New(spinner.WithSpinner(spinner.Points))
-	s3 := spinner.New(spinner.WithSpinner(spinner.Pulse))
-
 	return Layout{
 		headings: headings,
 
 		models: map[string]tea.Model{
 			headings[0]: NewTable(),
-			headings[1]: s1,
-			headings[2]: s2,
-			headings[3]: s3,
+			headings[1]: spinner.New(spinner.WithSpinner(spinner.Dot)),
+			headings[2]: spinner.New(spinner.WithSpinner(spinner.Points)),
+			headings[3]: spinner.New(spinner.WithSpinner(spinner.Pulse)),
 		},
 
 		tabNameToIndex: map[string]int{
-			"table": 0,
-			"two":   1,
-			"three": 2,
-			"four":  3,
+			headings[0]: 0,
+			headings[1]: 1,
+			headings[2]: 2,
+			headings[3]: 3,
 		},
 	}
 }
