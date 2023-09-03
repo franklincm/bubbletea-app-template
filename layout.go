@@ -16,9 +16,10 @@ type Layout struct {
 	tabNameToIndex map[string]int
 	tabs           tea.Model
 	frames         map[frameId]*frame.Model
+	activeTab      int
 }
 
-func initTabs(headings []string) tea.Model {
+func initTabs(headings []string, activeTab int) tea.Model {
 	tabs := tabs.New(headings)
 	tabs = tabs.FocusedStyle(styles.tabFocusedStyle)
 	tabs = tabs.BlurredStyle(styles.tabBlurredStyle)
@@ -28,6 +29,7 @@ func initTabs(headings []string) tea.Model {
 }
 
 func NewLayout() Layout {
+	activeTab := 0
 	headings := []string{
 		"table",
 		"two",
@@ -41,10 +43,11 @@ func NewLayout() Layout {
 		headings[3]: spinner.New(spinner.WithSpinner(spinner.Pulse)),
 	}
 
-	tabs := initTabs(headings)
+	tabs := initTabs(headings, activeTab)
 
 	return Layout{
-		headings: headings,
+		activeTab: activeTab,
+		headings:  headings,
 
 		models: models,
 

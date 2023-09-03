@@ -29,10 +29,7 @@ const (
 	footer
 )
 
-var (
-	command   string
-	activeTab int
-)
+var command string
 
 var (
 	conf   = config.New()
@@ -153,7 +150,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			dataTable.SetColumns(charColumns)
 			m.layout.models["table"] = dataTable
 
-			if activeTab == 0 {
+			if m.layout.activeTab == 0 {
 				m.SetContent(m.layout.models["table"])
 			}
 		} else if msg == "city" {
@@ -161,7 +158,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			dataTable.SetRows(cityRows)
 			m.layout.models["table"] = dataTable
 
-			if activeTab == 0 {
+			if m.layout.activeTab == 0 {
 				m.SetContent(m.layout.models["table"])
 			}
 		} else {
@@ -182,11 +179,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["left"]))) && !m.showprompt {
 			m.tabPrev()
-			m.SetContent(m.layout.models[m.layout.tabs.(tabs.Model).GetHeadings()[activeTab]])
+			m.SetContent(m.layout.models[m.layout.tabs.(tabs.Model).GetHeadings()[m.layout.activeTab]])
 			return m, cmd
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["right"]))) && !m.showprompt {
 			m.tabNext()
-			m.SetContent(m.layout.models[m.layout.tabs.(tabs.Model).GetHeadings()[activeTab]])
+			m.SetContent(m.layout.models[m.layout.tabs.(tabs.Model).GetHeadings()[m.layout.activeTab]])
 			return m, cmd
 
 			// table key bindings
@@ -320,22 +317,22 @@ func (m Model) SetContent(tm tea.Model) {
 
 func (m *Model) setActiveTab(index int) {
 	if index >= 0 && index <= len(m.layout.tabs.(tabs.Model).GetHeadings()) {
-		activeTab = index
-		m.layout.tabs = m.layout.tabs.(tabs.Model).SetFocused(activeTab)
+		m.layout.activeTab = index
+		m.layout.tabs = m.layout.tabs.(tabs.Model).SetFocused(m.layout.activeTab)
 	}
 }
 
 func (m *Model) tabNext() {
 	numHeadings := len(m.layout.tabs.(tabs.Model).GetHeadings())
-	tabNext := int(math.Min(float64(activeTab+1), float64(numHeadings-1)))
-	activeTab = tabNext
-	m.layout.tabs = m.layout.tabs.(tabs.Model).SetFocused(activeTab)
+	tabNext := int(math.Min(float64(m.layout.activeTab+1), float64(numHeadings-1)))
+	m.layout.activeTab = tabNext
+	m.layout.tabs = m.layout.tabs.(tabs.Model).SetFocused(m.layout.activeTab)
 }
 
 func (m *Model) tabPrev() {
-	tabPrev := int(math.Max(float64(activeTab-1), 0))
-	activeTab = tabPrev
-	m.layout.tabs = m.layout.tabs.(tabs.Model).SetFocused(activeTab)
+	tabPrev := int(math.Max(float64(m.layout.activeTab-1), 0))
+	m.layout.activeTab = tabPrev
+	m.layout.tabs = m.layout.tabs.(tabs.Model).SetFocused(m.layout.activeTab)
 }
 
 func main() {
