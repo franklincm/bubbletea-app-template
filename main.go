@@ -70,9 +70,9 @@ func New() Model {
 	prompt := commandprompt.New(":")
 	prompt.InputShow = key.NewBinding(key.WithKeys(":"))
 
-	Nav := NewLayout()
+	layout := NewLayout()
 
-	tabs := tabs.New(Nav.headings)
+	tabs := tabs.New(layout.headings)
 	tabs = tabs.FocusedStyle(styles.tabFocusedStyle)
 	tabs = tabs.BlurredStyle(styles.tabBlurredStyle)
 	tabs = tabs.SetFocused(activeTab)
@@ -83,7 +83,7 @@ func New() Model {
 		footerText: footerFrame.GetContent()[0],
 		prompt:     prompt,
 		tabs:       tabs,
-		layout:     Nav,
+		layout:     layout,
 	}
 
 	m.setActiveTab(m.layout.tabNameToIndex["table"])
