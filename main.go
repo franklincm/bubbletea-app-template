@@ -15,9 +15,6 @@ import (
 	commandprompt "github.com/franklincm/bubbles/commandPrompt"
 	tabs "github.com/franklincm/bubbles/tabs"
 	frame "github.com/franklincm/bubbletea-template/components/frame"
-	spinner "github.com/franklincm/bubbletea-template/components/spinner"
-	table "github.com/franklincm/bubbletea-template/components/table"
-	text "github.com/franklincm/bubbletea-template/components/text"
 	config "github.com/franklincm/bubbletea-template/config"
 )
 
@@ -48,8 +45,6 @@ var frameHeights = map[frameId]int{
 	footer: 2,
 }
 
-var dataTable table.Model
-
 type Model struct {
 	err      error
 	quitting bool
@@ -64,128 +59,46 @@ type Model struct {
 
 	headerModel tea.Model
 	blank       tea.Model
-	info        tea.Model
 	footerModel tea.Model
 	prompt      tea.Model
 	tabs        tea.Model
 
 	frames       map[frameId]*frame.Model
-	models       map[string]tea.Model
 	tabPosLookup map[string]int
+
+	nav Nav
 }
 
 func New() Model {
-	s1 := spinner.New()
-	s1.Spinner = spinner.Dot
-
-	s2 := spinner.New()
-	s2.Spinner = spinner.Points
-
-	s3 := spinner.New()
-	s3.Spinner = spinner.Pulse
-
 	prompt := commandprompt.New(":")
 	prompt.InputShow = key.NewBinding(key.WithKeys(":"))
 
-	dataTable = table.New(
-		table.WithColumns(cityColumns),
-		table.WithRows(cityRows),
-		table.WithFocused(true),
-		table.WithStyles(table.Styles{
-			Cell:     styles.tableCell,
-			Header:   styles.tableHeader,
-			Selected: styles.tableSelected,
-		}),
-		table.WithKeyMap(table.KeyMap{
-			LineUp: key.NewBinding(
-				key.WithKeys(conf.Keys["global"]["up"]),
-				key.WithHelp(fmt.Sprintf("↑/%s", conf.Keys["global"]["up"]), "up"),
-			),
-			LineDown: key.NewBinding(
-				key.WithKeys(conf.Keys["global"]["down"]),
-				key.WithHelp(fmt.Sprintf("↓/%s", conf.Keys["global"]["down"]), "down"),
-			),
-			PageUp: key.NewBinding(
-				key.WithKeys(conf.Keys["global"]["pageUp"]),
-				key.WithHelp(conf.Keys["global"]["pageUp"], "pageUp"),
-			),
-			PageDown: key.NewBinding(
-				key.WithKeys(conf.Keys["global"]["pageDown"]),
-				key.WithHelp(conf.Keys["global"]["pageDown"], "pageDown"),
-			),
-			HalfPageUp: key.NewBinding(
-				key.WithKeys(conf.Keys["global"]["halfPageUp"]),
-				key.WithHelp(conf.Keys["global"]["halfPageUp"], "halfPageUp"),
-			),
-			HalfPageDown: key.NewBinding(
-				key.WithKeys(conf.Keys["global"]["halfPageDown"]),
-				key.WithHelp(conf.Keys["global"]["halfPageDown"], "halfPageDown"),
-			),
-			GotoTop: key.NewBinding(
-				key.WithKeys("home", "g"),
-				key.WithHelp("g/home", "go to start"),
-			),
-			GotoBottom: key.NewBinding(
-				key.WithKeys("end", "G"),
-				key.WithHelp("G/end", "go to end"),
-			),
-		}),
-	)
-
-	headings := []string{
-		"table",
-		"two",
-		"three",
-		"four",
-	}
-
-	models := map[string]tea.Model{
-		headings[0]: dataTable,
-		headings[1]: s1,
-		headings[2]: s2,
-		headings[3]: s3,
-	}
+	Nav := NewNav()
 
 	tabPosLookup := map[string]int{}
-	for i, label := range headings {
+	for i, label := range Nav.headings {
 		tabPosLookup[label] = i
 	}
 
-	tabs := tabs.New(headings)
+	tabs := tabs.New(Nav.headings)
 	tabs = tabs.FocusedStyle(styles.tabFocusedStyle)
 	tabs = tabs.BlurredStyle(styles.tabBlurredStyle)
 	tabs = tabs.SetFocused(activeTab)
 
-	infoText := `
-app template
-version: 0.0.1
-theme: gruvbox
-`
-
 	m := Model{
-		headerModel:  text.New().Content(logo),
-		footerModel:  text.New().Content("footer"),
-		info:         text.New().Content(infoText),
-		blank:        text.New().Content(""),
+		headerModel:  NewHeaderModel(),
+		footerModel:  NewFooterModel(),
+		blank:        NewBlank(),
 		prompt:       prompt,
 		tabs:         tabs,
-		models:       models,
 		tabPosLookup: tabPosLookup,
+		nav:          Nav,
 	}
 
 	m.setActiveTab(m.tabPosLookup["table"])
 
 	frames := map[frameId]*frame.Model{
-		header: frame.
-			New().
-			Kind(frame.Horizontal).
-			Style(styles.headerStyle).
-			Content(
-				[]tea.Model{
-					m.info,
-					m.headerModel,
-				},
-			),
+		header: NewHeader(),
 		nav: frame.
 			New().
 			Content(
@@ -197,17 +110,9 @@ theme: gruvbox
 			New().
 			Style(styles.bodyStyle).
 			Content(
-				[]tea.Model{m.models["table"]},
+				[]tea.Model{m.nav.models["table"]},
 			),
-		footer: frame.
-			New().
-			Style(styles.footerStyle).
-			Content(
-				[]tea.Model{
-					m.footerModel,
-					m.blank,
-				},
-			),
+		footer: NewFooter(),
 	}
 
 	m.frames = frames
@@ -221,9 +126,9 @@ func (m Model) Init() tea.Cmd {
 
 	return tea.Batch(
 		tea.EnterAltScreen,
-		m.models["two"].(spinner.Model).Tick,
-		m.models["three"].(spinner.Model).Tick,
-		m.models["four"].(spinner.Model).Tick,
+		m.nav.models["two"].Init(),
+		m.nav.models["three"].Init(),
+		m.nav.models["four"].Init(),
 		m.prompt.Init(),
 	)
 }
@@ -282,21 +187,21 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else if msg == "dnd" {
 			dataTable.SetRows(charRows)
 			dataTable.SetColumns(charColumns)
-			m.models["table"] = dataTable
+			m.nav.models["table"] = dataTable
 
 			if activeTab == 0 {
-				m.SetContent(m.models["table"])
+				m.SetContent(m.nav.models["table"])
 			}
 		} else if msg == "city" {
 			dataTable.SetColumns(cityColumns)
 			dataTable.SetRows(cityRows)
-			m.models["table"] = dataTable
+			m.nav.models["table"] = dataTable
 
 			if activeTab == 0 {
-				m.SetContent(m.models["table"])
+				m.SetContent(m.nav.models["table"])
 			}
 		} else {
-			model, ok := m.models[string(msg)]
+			model, ok := m.nav.models[string(msg)]
 			if ok {
 				m.setActiveTab(m.tabPosLookup[string(msg)])
 				m.SetContent(model)
@@ -313,11 +218,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["left"]))) && !m.showprompt {
 			m.tabPrev()
-			m.SetContent(m.models[m.tabs.(tabs.Model).GetHeadings()[activeTab]])
+			m.SetContent(m.nav.models[m.tabs.(tabs.Model).GetHeadings()[activeTab]])
 			return m, cmd
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["right"]))) && !m.showprompt {
 			m.tabNext()
-			m.SetContent(m.models[m.tabs.(tabs.Model).GetHeadings()[activeTab]])
+			m.SetContent(m.nav.models[m.tabs.(tabs.Model).GetHeadings()[activeTab]])
 			return m, cmd
 
 			// table key bindings
@@ -398,25 +303,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	cmds = append(cmds, cmd)
 
 	// update main models
-	for model := range m.models {
-		m.models[model], cmd = m.models[model].Update(msg)
+	for model := range m.nav.models {
+		m.nav.models[model], cmd = m.nav.models[model].Update(msg)
 		cmds = append(cmds, cmd)
 	}
 
 	if m.showprompt {
-		m.frames[footer] = m.frames[footer].Content(
-			[]tea.Model{
-				m.prompt,
-				m.blank,
-			},
-		)
+		if err := m.frames[footer].SetContentModel(0, m.prompt); err != nil {
+			log.Println(err)
+		}
 	} else {
-		m.frames[footer] = m.frames[footer].Content(
-			[]tea.Model{
-				m.footerModel,
-				m.blank,
-			},
-		)
+		if err := m.frames[footer].SetContentModel(0, m.footerModel); err != nil {
+			log.Println(err)
+		}
 	}
 
 	return m, tea.Batch(cmds...)
@@ -439,13 +338,6 @@ func (m Model) View() string {
 }
 
 func (m Model) SetContent(tm tea.Model) {
-	m.frames[header] = m.frames[header].Content(
-		[]tea.Model{
-			m.info,
-			m.headerModel,
-		},
-	)
-
 	m.frames[nav] = m.frames[nav].Content(
 		[]tea.Model{
 			m.tabs,

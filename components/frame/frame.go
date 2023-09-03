@@ -1,6 +1,8 @@
 package frame
 
 import (
+	"fmt"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -100,6 +102,14 @@ func (m Model) Append(content tea.Model) *Model {
 func (m Model) Content(content []tea.Model) *Model {
 	m.content = content
 	return &m
+}
+
+func (m Model) SetContentModel(position int, model tea.Model) error {
+	if position >= 0 && position < len(m.content) {
+		m.content[position] = model
+		return nil
+	}
+	return fmt.Errorf("index position out of bounds. content is size: %d", len(m.content))
 }
 
 func (m Model) GetContent() []tea.Model {

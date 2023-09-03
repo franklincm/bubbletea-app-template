@@ -9,7 +9,7 @@ import (
 )
 
 func (m Model) Init() tea.Cmd {
-	return nil
+	return m.Tick
 }
 
 // Internal ID management. Used during animating to ensure that frame messages
