@@ -14,7 +14,7 @@ import (
 	lipgloss "github.com/charmbracelet/lipgloss"
 	commandprompt "github.com/franklincm/bubbles/commandPrompt"
 	tabs "github.com/franklincm/bubbles/tabs"
-	frame "github.com/franklincm/bubbletea-template/components/frame"
+
 	config "github.com/franklincm/bubbletea-template/config"
 )
 
@@ -61,8 +61,6 @@ type Model struct {
 	prompt     tea.Model
 	tabs       tea.Model
 
-	frames map[frameId]*frame.Model
-
 	layout Layout
 }
 
@@ -82,26 +80,6 @@ func New() Model {
 	}
 
 	m.setActiveTab(m.layout.tabNameToIndex["table"])
-
-	frames := map[frameId]*frame.Model{
-		header: NewHeader(),
-		nav: frame.
-			New().
-			Content(
-				[]tea.Model{
-					m.layout.tabs,
-				},
-			).Style(styles.navStyle),
-		body: frame.
-			New().
-			Style(styles.bodyStyle).
-			Content(
-				[]tea.Model{m.layout.models["table"]},
-			),
-		footer: footerFrame,
-	}
-
-	m.frames = frames
 
 	return m
 }
@@ -131,28 +109,28 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 
 		// update header
-		m.frames[header], cmd = m.frames[header].Update(tea.WindowSizeMsg{
+		m.layout.frames[header], cmd = m.layout.frames[header].Update(tea.WindowSizeMsg{
 			Width:  msg.Width,
 			Height: frameHeights[header],
 		})
 		cmds = append(cmds, cmd)
 
 		// update nav
-		m.frames[nav], cmd = m.frames[nav].Update(tea.WindowSizeMsg{
+		m.layout.frames[nav], cmd = m.layout.frames[nav].Update(tea.WindowSizeMsg{
 			Width:  msg.Width,
 			Height: frameHeights[nav],
 		})
 		cmds = append(cmds, cmd)
 
 		// update footer
-		m.frames[footer], cmd = m.frames[footer].Update(tea.WindowSizeMsg{
+		m.layout.frames[footer], cmd = m.layout.frames[footer].Update(tea.WindowSizeMsg{
 			Width:  msg.Width,
 			Height: frameHeights[footer],
 		})
 		cmds = append(cmds, cmd)
 
 		// update body
-		m.frames[body], cmd = m.frames[body].Update(tea.WindowSizeMsg{
+		m.layout.frames[body], cmd = m.layout.frames[body].Update(tea.WindowSizeMsg{
 			Width:  msg.Width - 2,
 			Height: msg.Height - frameHeights[header] - frameHeights[footer] - len(frameHeights),
 		})
@@ -213,28 +191,28 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			// table key bindings
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["down"]))) && !m.showprompt {
-			m.frames[body], cmd = m.frames[body].Update(msg)
+			m.layout.frames[body], cmd = m.layout.frames[body].Update(msg)
 			return m, cmd
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["up"]))) && !m.showprompt {
-			m.frames[body], cmd = m.frames[body].Update(msg)
+			m.layout.frames[body], cmd = m.layout.frames[body].Update(msg)
 			return m, cmd
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["halfPageUp"]))) && !m.showprompt {
-			m.frames[body], cmd = m.frames[body].Update(msg)
+			m.layout.frames[body], cmd = m.layout.frames[body].Update(msg)
 			return m, cmd
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["halfPageDown"]))) && !m.showprompt {
-			m.frames[body], cmd = m.frames[body].Update(msg)
+			m.layout.frames[body], cmd = m.layout.frames[body].Update(msg)
 			return m, cmd
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["pageDown"]))) && !m.showprompt {
-			m.frames[body], cmd = m.frames[body].Update(msg)
+			m.layout.frames[body], cmd = m.layout.frames[body].Update(msg)
 			return m, cmd
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys(conf.Keys["global"]["pageUp"]))) && !m.showprompt {
-			m.frames[body], cmd = m.frames[body].Update(msg)
+			m.layout.frames[body], cmd = m.layout.frames[body].Update(msg)
 			return m, cmd
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys("g"))) && !m.showprompt {
-			m.frames[body], cmd = m.frames[body].Update(msg)
+			m.layout.frames[body], cmd = m.layout.frames[body].Update(msg)
 			return m, cmd
 		} else if key.Matches(msg, key.NewBinding(key.WithKeys("G"))) && !m.showprompt {
-			m.frames[body], cmd = m.frames[body].Update(msg)
+			m.layout.frames[body], cmd = m.layout.frames[body].Update(msg)
 			return m, cmd
 
 			// tab suggestions
@@ -279,8 +257,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	default:
-		for f := range m.frames {
-			m.frames[f], cmd = m.frames[f].Update(msg)
+		for f := range m.layout.frames {
+			m.layout.frames[f], cmd = m.layout.frames[f].Update(msg)
 			cmds = append(cmds, cmd)
 		}
 	}
@@ -295,11 +273,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	if m.showprompt {
-		if err := m.frames[footer].SetContentModel(0, m.prompt); err != nil {
+		if err := m.layout.frames[footer].SetContentModel(0, m.prompt); err != nil {
 			log.Println(err)
 		}
 	} else {
-		if err := m.frames[footer].SetContentModel(0, m.footerText); err != nil {
+		if err := m.layout.frames[footer].SetContentModel(0, m.footerText); err != nil {
 			log.Println(err)
 		}
 	}
@@ -315,26 +293,26 @@ func (m Model) View() string {
 	return styles.fullscreenStyle.Render(
 		lipgloss.JoinVertical(
 			lipgloss.Center,
-			m.frames[header].View(),
-			m.frames[nav].View(),
-			m.frames[body].View(),
-			m.frames[footer].View(),
+			m.layout.frames[header].View(),
+			m.layout.frames[nav].View(),
+			m.layout.frames[body].View(),
+			m.layout.frames[footer].View(),
 		),
 	)
 }
 
 func (m Model) SetContent(tm tea.Model) {
-	m.frames[nav] = m.frames[nav].Content(
+	m.layout.frames[nav] = m.layout.frames[nav].Content(
 		[]tea.Model{
 			m.layout.tabs,
 		},
 	)
 
-	m.frames[body] = m.frames[body].Content(
+	m.layout.frames[body] = m.layout.frames[body].Content(
 		[]tea.Model{tm},
 	)
 
-	m.frames[body], _ = m.frames[body].Update(tea.WindowSizeMsg{
+	m.layout.frames[body], _ = m.layout.frames[body].Update(tea.WindowSizeMsg{
 		Width:  styles.bodyStyle.GetWidth(),
 		Height: styles.bodyStyle.GetHeight(),
 	})
