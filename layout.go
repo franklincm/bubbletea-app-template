@@ -33,10 +33,10 @@ func initTabs(headings []string, activeTab int) tea.Model {
 func NewLayout() Layout {
 	activeTab := 0
 	headings := []string{
-		"table",
-		"two",
-		"three",
-		"four",
+		"alpha",
+		"bravo",
+		"charlie",
+		"delta",
 	}
 	models := map[string]tea.Model{
 		headings[0]: NewTable(),
@@ -73,7 +73,7 @@ func NewLayout() Layout {
 				New().
 				Style(styles.bodyStyle).
 				Content(
-					[]tea.Model{models["table"]},
+					[]tea.Model{models[headings[0]]},
 				),
 			footer: NewFooter(),
 		},

@@ -75,22 +75,28 @@ func New() Model {
 		layout:     layout,
 	}
 
-	m.layout.setActiveTab(m.layout.tabNameToIndex["table"])
-
 	return m
 }
 
 func (m Model) Init() tea.Cmd {
+	var (
+		cmd  tea.Cmd
+		cmds []tea.Cmd
+	)
+
 	m.Update(commandprompt.PromptInput(command))
 	command = ""
 
-	return tea.Batch(
-		tea.EnterAltScreen,
-		m.layout.models["two"].Init(),
-		m.layout.models["three"].Init(),
-		m.layout.models["four"].Init(),
-		m.prompt.Init(),
-	)
+	cmds = append(cmds, tea.EnterAltScreen)
+
+	for model := range m.layout.models {
+		cmd = m.layout.models[model].Init()
+		cmds = append(cmds, cmd)
+	}
+
+	cmds = append(cmds, m.prompt.Init())
+
+	return tea.Batch(cmds...)
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -147,18 +153,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else if msg == "dnd" {
 			dataTable.SetRows(charRows)
 			dataTable.SetColumns(charColumns)
-			m.layout.models["table"] = dataTable
+			m.layout.models[m.layout.headings[0]] = dataTable
 
 			if m.layout.activeTab == 0 {
-				m.layout.SetContent(m.layout.models["table"])
+				m.layout.SetContent(m.layout.models[m.layout.headings[0]])
 			}
 		} else if msg == "city" {
 			dataTable.SetColumns(cityColumns)
 			dataTable.SetRows(cityRows)
-			m.layout.models["table"] = dataTable
+			m.layout.models[m.layout.headings[0]] = dataTable
 
 			if m.layout.activeTab == 0 {
-				m.layout.SetContent(m.layout.models["table"])
+				m.layout.SetContent(m.layout.models[m.layout.headings[0]])
 			}
 		} else {
 			model, ok := m.layout.models[string(msg)]
