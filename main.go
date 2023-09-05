@@ -11,9 +11,8 @@ import (
 	key "github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	lipgloss "github.com/charmbracelet/lipgloss"
-	commandprompt "github.com/franklincm/bubbles/commandPrompt"
 	tabs "github.com/franklincm/bubbles/tabs"
-
+	commandprompt "github.com/franklincm/bubbletea-template/components/commandPrompt"
 	config "github.com/franklincm/bubbletea-template/config"
 )
 
@@ -84,7 +83,7 @@ func (m Model) Init() tea.Cmd {
 		cmds []tea.Cmd
 	)
 
-	m.Update(commandprompt.PromptInput(command))
+	m.Update(commandprompt.Input(command))
 	command = ""
 
 	cmds = append(cmds, tea.EnterAltScreen)
@@ -141,7 +140,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// redraw
 		cmds = append(cmds, tea.ClearScreen)
 
-	case commandprompt.PromptInput:
+	case commandprompt.Input:
 		log.Printf("prompt input: %#v", msg)
 		m.suggestions = nil
 		m.inputSuggestionCounter = 0
@@ -174,7 +173,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
-	case commandprompt.PromptEditing:
+	case commandprompt.Editing:
 		m.showprompt = bool(msg)
 		return m, nil
 
