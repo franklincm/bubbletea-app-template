@@ -9,7 +9,7 @@ require (
 	github.com/charmbracelet/lipgloss v0.8.0
 	github.com/franklincm/bubbles v0.0.0-20230212052300-4c3a38e7a3b0
 	github.com/imdario/mergo v0.3.13
-	github.com/mattn/go-runewidth v0.0.14
+	github.com/mattn/go-runewidth v0.0.15
 )
 
 require (
