@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/BurntSushi/toml v1.3.2
 	github.com/charmbracelet/bubbles v0.16.1
-	github.com/charmbracelet/bubbletea v0.24.1
+	github.com/charmbracelet/bubbletea v0.24.2
 	github.com/charmbracelet/lipgloss v0.8.0
 	github.com/franklincm/bubbles v0.0.0-20230212052300-4c3a38e7a3b0
 	github.com/imdario/mergo v0.3.13
